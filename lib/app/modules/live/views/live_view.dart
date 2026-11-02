@@ -1,19 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:livekit_client/livekit_client.dart';
 
 import '../controllers/live_controller.dart';
 
 class LiveView extends GetView<LiveController> {
-  const LiveView({super.key});
+  const LiveView({super.key, this.eventId});
+
+  final String? eventId;
 
   static const Color pink = Color(0xFFE81759);
   static const Color purple = Color(0xFF9228D5);
   static const Color darkRed = Color(0xFFC91520);
 
   @override
+  String? get tag => eventId;
+
+  @override
   Widget build(BuildContext context) {
-    Get.put(LiveController());
-    return Scaffold(
+    final live = Get.put(LiveController(), tag: eventId);
+    live.ensureJoined(eventId);
+    return _LeaveRoomOnExit(
+      eventId: eventId,
+      child: Scaffold(
       backgroundColor: Colors.black,
       body: Column(
         children: [
@@ -22,21 +31,30 @@ class LiveView extends GetView<LiveController> {
               fit: StackFit.expand,
               children: [
                 // Main participant video background
-                Image.network(
-                  'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=90',
-                  fit: BoxFit.cover,
-                  alignment: Alignment.topCenter,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: const Color(0xFF46352C),
-                    child: const Center(
-                      child: Icon(
-                        Icons.person,
-                        size: 100,
-                        color: Colors.white54,
+                Obx(() {
+                  final track = controller.remoteVideo.value;
+                  if (track != null) {
+                    return VideoTrackRenderer(
+                      track,
+                      fit: VideoViewFit.cover,
+                    );
+                  }
+                  return Image.network(
+                    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=90',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: const Color(0xFF46352C),
+                      child: const Center(
+                        child: Icon(
+                          Icons.person,
+                          size: 100,
+                          color: Colors.white54,
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                }),
 
                 // Dark overlay for text visibility
                 const DecoratedBox(
@@ -135,19 +153,30 @@ class LiveView extends GetView<LiveController> {
                                 child: Stack(
                                   fit: StackFit.expand,
                                   children: [
-                                    Image.network(
-                                      'https://images.unsplash.com/photo-1534528741775-53994a69daeb'
-                                      '?auto=format&fit=crop&w=350&q=85',
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Container(
-                                        color: const Color(0xFF765D4A),
-                                        child: const Icon(
-                                          Icons.person,
-                                          size: 50,
-                                          color: Colors.white,
+                                    Obx(() {
+                                      final track = controller.localVideo.value;
+                                      if (track != null &&
+                                          controller.isCameraOn.value) {
+                                        return VideoTrackRenderer(
+                                          track,
+                                          fit: VideoViewFit.cover,
+                                        );
+                                      }
+                                      return Image.network(
+                                        'https://images.unsplash.com/photo-1534528741775-53994a69daeb'
+                                        '?auto=format&fit=crop&w=350&q=85',
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) =>
+                                            Container(
+                                          color: const Color(0xFF765D4A),
+                                          child: const Icon(
+                                            Icons.person,
+                                            size: 50,
+                                            color: Colors.white,
+                                          ),
                                         ),
-                                      ),
-                                    ),
+                                      );
+                                    }),
                                     Positioned(
                                       top: 8,
                                       right: 8,
@@ -353,6 +382,7 @@ class LiveView extends GetView<LiveController> {
           // Bottom navigation
         ],
       ),
+      ),
     );
   }
 
@@ -389,6 +419,32 @@ class LiveView extends GetView<LiveController> {
       ),
     );
   }
+}
+
+class _LeaveRoomOnExit extends StatefulWidget {
+  const _LeaveRoomOnExit({required this.eventId, required this.child});
+
+  final String? eventId;
+  final Widget child;
+
+  @override
+  State<_LeaveRoomOnExit> createState() => _LeaveRoomOnExitState();
+}
+
+class _LeaveRoomOnExitState extends State<_LeaveRoomOnExit> {
+  @override
+  void dispose() {
+    final eventId = widget.eventId;
+    if (eventId != null && Get.isRegistered<LiveController>(tag: eventId)) {
+      final live = Get.find<LiveController>(tag: eventId);
+      live.allowRejoin();
+      live.leaveRoom();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _NavItem {

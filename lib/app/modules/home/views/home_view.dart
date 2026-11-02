@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sundaymixer/app/modules/freeeventbooking/views/freeeventbooking_view.dart';
+import 'package:sundaymixer/app/modules/live/views/live_view.dart';
 import 'package:sundaymixer/app/modules/notification/views/notification_view.dart';
 
 import '../../completeYourProfile/views/complete_your_profile_view.dart';
@@ -635,7 +636,7 @@ class HomeView extends GetView<HomeController> {
             _gradientButton(
               text: 'Join Live Event',
               icon: Icons.arrow_forward_rounded,
-              onTap: () => _showMessage('Join live event'),
+              onTap: () => Get.to(() => LiveView(eventId: event.id)),
             ),
           ],
         ),
