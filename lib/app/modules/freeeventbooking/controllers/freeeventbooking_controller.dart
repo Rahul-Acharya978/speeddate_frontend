@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sundaymixer/app/modules/home/controllers/home_controller.dart';
 
 class FreeeventbookingController extends GetxController {
   //TODO: Implement FreeeventbookingController
@@ -8,6 +9,23 @@ class FreeeventbookingController extends GetxController {
   final count = 0.obs;
   final RxBool isBooking = false.obs;
   final RxBool isBooked = false.obs;
+  HomeEvent? event;
+
+  String get title => event?.title ?? 'Creatives & Introverts';
+  String get subtitle => event?.subtitle.isNotEmpty == true
+      ? event!.subtitle
+      : 'Host: Ananya • SpeedLounge';
+  String get city => event?.city.isNotEmpty == true ? event!.city : 'Indore';
+  String get timeLabel => event?.timeLabel.isNotEmpty == true ? event!.timeLabel : '8:00 PM';
+  String get startsLabel =>
+      (event?.scheduleLabel.contains('TONIGHT') ?? true) ? 'STARTS TONIGHT' : 'STARTS SOON';
+  String get whenLabel => event == null
+      ? 'Today • 8:00 PM'
+      : '${event!.dateLabel} • ${event!.timeLabel}';
+  String get spotsLabel => event?.joinedLabel ?? '18 spots left';
+  String get roundsLabel => '${event?.meetMinutes ?? 3}-min\nchats';
+  bool get isFree => event?.isFree ?? true;
+  String get priceLabel => event?.priceLabel.isNotEmpty == true ? event!.priceLabel : '₹0';
 
   void shareEvent() {
     Get.snackbar(

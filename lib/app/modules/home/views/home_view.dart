@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sundaymixer/app/modules/freeeventbooking/views/freeeventbooking_view.dart';
 import 'package:sundaymixer/app/modules/notification/views/notification_view.dart';
 
 import '../../completeYourProfile/views/complete_your_profile_view.dart';
@@ -73,35 +74,54 @@ class HomeView extends GetView<HomeController> {
                         const SizedBox(height: 16),
                         _buildSearchBar(context),
                         const SizedBox(height: 16),
-                        _buildLiveEvent(context),
-                        const SizedBox(height: 28),
-                        _buildSectionHeader(
-                          'More Live Events',
-                          '4 Active',
-                          'View All (4)',
-                          () => _showMessage('All live events'),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildLiveEventsList(context),
-                        const SizedBox(height: 28),
-                        _buildSectionHeader(
-                          'Upcoming Events',
-                          '2',
-                          'View All',
-                          () => _showMessage('Upcoming events'),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildUpcomingEvents(context, isWide),
-                        const SizedBox(height: 28),
-                        _buildSectionHeader(
-                          'Your Upcoming Events',
-                          '2',
-                          'View All',
-                          () => _showMessage('Your registered events'),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildUpcomingEvents(context, isWide, registered: true),
-                        const SizedBox(height: 24),
+                        Obx(() {
+                          if (controller.isEventsLoading.value) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 28),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          final booked = controller.bookedEvent.value;
+                          final live = controller.liveEvents;
+                          final upcoming = controller.upcomingEvents;
+                          final yours = controller.yourUpcomingEvents;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (booked != null) ...[
+                                _buildLiveEvent(context, booked),
+                                const SizedBox(height: 28),
+                              ],
+                              _buildSectionHeader(
+                                'More Live Events',
+                                '${live.length} Active',
+                                'View All (${live.length})',
+                                () => _showMessage('All live events'),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildLiveEventsList(context, live),
+                              const SizedBox(height: 28),
+                              _buildSectionHeader(
+                                'Upcoming Events',
+                                '${upcoming.length}',
+                                'View All',
+                                () => _showMessage('Upcoming events'),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildUpcomingEvents(context, isWide, upcoming),
+                              const SizedBox(height: 28),
+                              _buildSectionHeader(
+                                'Your Upcoming Events',
+                                '${yours.length}',
+                                'View All',
+                                () => _showMessage('Your registered events'),
+                              ),
+                              const SizedBox(height: 12),
+                              _buildUpcomingEvents(context, isWide, yours),
+                              const SizedBox(height: 24),
+                            ],
+                          );
+                        }),
                       ],
                     ),
                   ),
@@ -465,7 +485,7 @@ class HomeView extends GetView<HomeController> {
 
   // ---------------- LIVE EVENT HERO ----------------
 
-  Widget _buildLiveEvent(BuildContext context) {
+  Widget _buildLiveEvent(BuildContext context, HomeEvent event) {
     final width = MediaQuery.sizeOf(context).width;
     final heroHeight = (width * 0.47).clamp(190.0, 270.0);
 
@@ -528,11 +548,13 @@ class HomeView extends GetView<HomeController> {
                           ),
                           const SizedBox(width: 8),
                           Flexible(
-                            child: _heroPill(
-                              Icons.circle,
-                              'STARTS IN 02:12',
-                              const Color(0xFFC20C50),
-                              Colors.white,
+                            child: Obx(
+                              () => _heroPill(
+                                Icons.circle,
+                                controller.startsInLabel(event),
+                                const Color(0xFFC20C50),
+                                Colors.white,
+                              ),
                             ),
                           ),
                         ],
@@ -545,20 +567,24 @@ class HomeView extends GetView<HomeController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Row(
+                          Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.access_time_rounded,
                                 color: Colors.white,
                                 size: 15,
                               ),
-                              SizedBox(width: 6),
-                              Text(
-                                'TONIGHT • 8:00 PM',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  event.scheduleLabel,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ],
@@ -567,9 +593,9 @@ class HomeView extends GetView<HomeController> {
                           FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerLeft,
-                            child: const Text(
-                              'Speed Dating Night',
-                              style: TextStyle(
+                            child: Text(
+                              event.title,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w800,
@@ -577,19 +603,23 @@ class HomeView extends GetView<HomeController> {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Row(
+                          Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.settings_suggest_outlined,
                                 color: Colors.white70,
                                 size: 14,
                               ),
-                              SizedBox(width: 5),
-                              Text(
-                                'Hosted by Ananya & Team',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
+                              const SizedBox(width: 5),
+                              Expanded(
+                                child: Text(
+                                  event.subtitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                  ),
                                 ),
                               ),
                             ],
@@ -759,42 +789,33 @@ class HomeView extends GetView<HomeController> {
 
   // ---------------- MORE LIVE EVENTS ----------------
 
-  Widget _buildLiveEventsList(BuildContext context) {
+  Widget _buildLiveEventsList(BuildContext context, List<HomeEvent> events) {
     final width = MediaQuery.sizeOf(context).width;
     final cardWidth = (width * 0.64).clamp(245.0, 310.0);
+    if (events.isEmpty) return _emptyEvents('No live events right now');
 
     return SizedBox(
       height: 170,
-      child: ListView(
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-        children: [
-          SizedBox(
+        itemCount: events.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final event = events[index];
+          return SizedBox(
             width: cardWidth,
             child: _buildLiveSmallCard(
-              image: dinnerImage,
-              title: 'Creatives & Introverts',
-              host: 'Host: Ananya • Speed Lounge',
-              spots: '18 spots left',
-              price: '₹199',
-              location: 'Indore',
-              onTap: () => _showMessage('Register for Creatives & Introverts'),
+              image: _eventImage(index),
+              title: event.title,
+              host: event.subtitle,
+              spots: event.joinedLabel,
+              price: event.priceLabel,
+              location: event.city.isEmpty ? 'City' : event.city,
+              onTap: () => _openEventBooking(event),
             ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: cardWidth,
-            child: _buildLiveSmallCard(
-              image: partyImage,
-              title: 'Social Mixer Night',
-              host: 'Host: Rahul • Social Club',
-              spots: '12 spots left',
-              price: '₹249',
-              location: 'Indore',
-              onTap: () => _showMessage('Register for Social Mixer Night'),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -968,49 +989,53 @@ class HomeView extends GetView<HomeController> {
 
   Widget _buildUpcomingEvents(
     BuildContext context,
-    bool isWide, {
-    bool registered = false,
-  }) {
+    bool isWide,
+    List<HomeEvent> events,
+  ) {
     final width = MediaQuery.sizeOf(context).width;
     final cardWidth = isWide ? 300.0 : (width * 0.64).clamp(245.0, 310.0);
+    if (events.isEmpty) return _emptyEvents('No events yet');
 
     return SizedBox(
       height: 268,
-      child: ListView(
+      child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
-
-        children: [
-          SizedBox(
+        itemCount: events.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) {
+          final event = events[index];
+          return SizedBox(
             width: cardWidth,
             child: _buildEventCard(
-              image: partyImage,
-              title: 'Friday Night Speed Dating',
-              date: '25 Sep',
-              time: '7:30 PM',
-              joined: registered ? '24 joined' : '24 joined',
-              price: '₹249',
+              image: _eventImage(index + 1),
+              title: event.title,
+              date: event.dateLabel,
+              time: event.timeLabel,
+              joined: event.joinedLabel,
+              price: event.priceLabel,
               available: true,
-              onTap: () => _showMessage('Friday Night Speed Dating'),
+              onTap: () => _openEventBooking(event),
             ),
-          ),
-          const SizedBox(width: 12),
-          SizedBox(
-            width: cardWidth,
-            child: _buildEventCard(
-              image: coffeeImage,
-              title: 'Coffee & Connections',
-              date: '27 Sep',
-              time: '6:00 PM',
-              joined: '18 joined',
-              price: '₹199',
-              available: true,
-              onTap: () => _showMessage('Coffee & Connections'),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
+  }
+
+  Widget _emptyEvents(String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(
+        message,
+        style: const TextStyle(color: Color(0xFF796775), fontSize: 13),
+      ),
+    );
+  }
+
+  String _eventImage(int index) {
+    const images = [speedDatingImage, dinnerImage, partyImage, coffeeImage];
+    return images[index % images.length];
   }
 
   Widget _buildEventCard({
@@ -1187,6 +1212,10 @@ class HomeView extends GetView<HomeController> {
 
   void _showMessage(String message) {
 
+  }
+
+  void _openEventBooking(HomeEvent event) {
+    Get.to(() => const FreeeventbookingView(), arguments: event);
   }
 }
 

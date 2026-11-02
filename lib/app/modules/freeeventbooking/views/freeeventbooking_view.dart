@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../freebookingSuccessful/views/freebooking_successful_view.dart';
+import '../../home/controllers/home_controller.dart';
 import '../controllers/freeeventbooking_controller.dart';
 
 class FreeeventbookingView extends GetView<FreeeventbookingController> {
@@ -16,7 +17,9 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(FreeeventbookingController());
+    final bookingController = Get.put(FreeeventbookingController());
+    final args = Get.arguments;
+    if (args is HomeEvent) bookingController.event = args;
     return Scaffold(
       backgroundColor: bg,
       body: SafeArea(
@@ -217,13 +220,13 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
                   color: const Color(0xFFFFF2F4),
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.circle, size: 8, color: pink),
-                    SizedBox(width: 7),
+                    const Icon(Icons.circle, size: 8, color: pink),
+                    const SizedBox(width: 7),
                     Text(
-                      'STARTS TONIGHT',
+                      controller.startsLabel,
                       style: TextStyle(
                         color: darkPink,
                         fontSize: 10,
@@ -231,11 +234,11 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
                         letterSpacing: 0.2,
                       ),
                     ),
-                    SizedBox(width: 8),
-                    Icon(Icons.circle, size: 4, color: Color(0xFFD5B8C2)),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.circle, size: 4, color: Color(0xFFD5B8C2)),
+                    const SizedBox(width: 8),
                     Text(
-                      '8:00 PM',
+                      controller.timeLabel,
                       style: TextStyle(
                         color: muted,
                         fontSize: 11,
@@ -306,9 +309,9 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
           ],
         ),
         const SizedBox(height: 5),
-        const Text(
-          'Creatives & Introverts',
-          style: TextStyle(
+        Text(
+          controller.title,
+          style: const TextStyle(
             fontSize: 26,
             height: 1.15,
             fontWeight: FontWeight.w800,
@@ -317,9 +320,9 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
           ),
         ),
         const SizedBox(height: 5),
-        const Text(
-          'Host: Ananya • SpeedLounge',
-          style: TextStyle(fontSize: 13.5, color: muted),
+        Text(
+          controller.subtitle,
+          style: const TextStyle(fontSize: 13.5, color: muted),
         ),
         const SizedBox(height: 10),
         Wrap(
@@ -328,12 +331,12 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
           children: [
             _infoChip(
               Icons.location_on_outlined,
-              'Indore',
+              controller.city,
               const Color(0xFFF0E7FF),
             ),
             _infoChip(
               Icons.calendar_today_outlined,
-              'Today • 8:00 PM',
+              controller.whenLabel,
               const Color(0xFFF0E7FF),
             ),
           ],
@@ -341,7 +344,7 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
         SizedBox(height: 10,),
         _infoChip(
           Icons.public,
-          '18 spots left',
+          controller.spotsLabel,
           const Color(0xFFFFDDE3),
           textColor: darkPink,
         ),
@@ -389,7 +392,7 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
             iconColor: purple,
             iconBg: const Color(0xFFF1E8FF),
             title: 'PARTICIPANTS',
-            value: '18 spots\nleft',
+            value: controller.spotsLabel,
           ),
         ),
         const SizedBox(width: 5),
@@ -399,7 +402,7 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
             iconColor: darkPink,
             iconBg: const Color(0xFFFFD9E0),
             title: 'SPEED\nROUNDS',
-            value: '3-min\nchats',
+            value: controller.roundsLabel,
           ),
         ),
         const SizedBox(width: 5),
@@ -593,17 +596,17 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
                 color: darkPink,
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.card_giftcard_rounded,
                     color: Colors.white,
                     size: 12,
                   ),
-                  SizedBox(width: 5),
+                  const SizedBox(width: 5),
                   Text(
-                    'FIRST EVENT FREE',
+                    controller.isFree ? 'FIRST EVENT FREE' : 'EVENT PASS',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -641,18 +644,21 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
-                      '₹99',
-                      style: TextStyle(
-                        color: Color(0xFFB7A5AB),
-                        fontSize: 11,
-                        decoration: TextDecoration.lineThrough,
+                    if (!controller.isFree)
+                      const SizedBox.shrink()
+                    else
+                      const Text(
+                        '₹99',
+                        style: TextStyle(
+                          color: Color(0xFFB7A5AB),
+                          fontSize: 11,
+                          decoration: TextDecoration.lineThrough,
+                        ),
                       ),
-                    ),
                     const SizedBox(height: 1),
-                    const Text(
-                      '₹0',
-                      style: TextStyle(
+                    Text(
+                      controller.isFree ? '₹0' : controller.priceLabel,
+                      style: const TextStyle(
                         color: darkPink,
                         fontSize: 38,
                         height: 1,
@@ -673,19 +679,22 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
                   color: const Color(0xFFF7F0FF),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Column(
+                child: Column(
                   children: [
                     _PriceRow(
                       label: 'Event Pass (Welcome Gift)',
-                      value: 'FREE',
+                      value: controller.isFree ? 'FREE' : controller.priceLabel,
                       valueColor: darkPink,
                     ),
-                    SizedBox(height: 9),
-                    _PriceRow(label: 'Convenience & Match Fee', value: '₹0'),
-                    SizedBox(height: 13),
+                    const SizedBox(height: 9),
+                    _PriceRow(
+                      label: 'Convenience & Match Fee',
+                      value: controller.isFree ? '₹0' : '₹0',
+                    ),
+                    const SizedBox(height: 13),
                     _PriceRow(
                       label: 'Total',
-                      value: '₹0',
+                      value: controller.isFree ? '₹0' : controller.priceLabel,
                       bold: true,
                       valueColor: darkPink,
                     ),
@@ -694,14 +703,16 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
               ),
             ),
             const SizedBox(height: 14),
-            const Row(
+            Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.verified_user_outlined, color: purple, size: 17),
-                SizedBox(width: 6),
+                const Icon(Icons.verified_user_outlined, color: purple, size: 17),
+                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    '100% on us! No UPI, card, or payment required.',
+                    controller.isFree
+                        ? '100% on us! No UPI, card, or payment required.'
+                        : 'Pay the event pass to confirm your seat.',
                     style: TextStyle(
                       color: muted,
                       fontSize: 12.5,
