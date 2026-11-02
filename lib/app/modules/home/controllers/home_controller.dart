@@ -53,7 +53,9 @@ class HomeEvent {
       isFree: json['isFree'] == true,
       meetMinutes: int.tryParse(json['meetMinutes']?.toString() ?? '') ?? 3,
       joinedLabel: json['joinedLabel']?.toString() ?? '0 joined',
-      startsAt: rawStart == null ? null : DateTime.tryParse(rawStart)?.toLocal(),
+      startsAt: rawStart == null
+          ? null
+          : DateTime.tryParse(rawStart)?.toLocal(),
       isLive: json['isLive'] == true,
     );
   }
@@ -134,7 +136,9 @@ class HomeController extends GetxController {
       final response = await http.get(
         Uri.parse(homeEventsApiUrl),
         headers: {
-          'Authorization': token.startsWith('Bearer ') ? token : 'Bearer $token',
+          'Authorization': token.startsWith('Bearer ')
+              ? token
+              : 'Bearer $token',
           'Accept': 'application/json',
         },
       );
