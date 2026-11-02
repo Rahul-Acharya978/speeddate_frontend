@@ -71,8 +71,8 @@ class HomeView extends GetView<HomeController> {
                       children: [
                         const SizedBox(height: 8),
                         _buildProfileCard(context),
-                        const SizedBox(height: 16),
-                        _buildSearchBar(context),
+                        // const SizedBox(height: 16),
+                        // _buildSearchBar(context),
                         const SizedBox(height: 16),
                         Obx(() {
                           if (controller.isEventsLoading.value) {
