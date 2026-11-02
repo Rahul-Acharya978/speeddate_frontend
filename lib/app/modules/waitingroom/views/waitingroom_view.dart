@@ -56,8 +56,8 @@ class WaitingroomView extends GetView<WaitingroomController> {
                           _findingMatchCard(),
                           const SizedBox(height: 9),
                           _matchAttemptsCard(),
-                          const SizedBox(height: 13),
-                          _lobbySection(),
+                          // const SizedBox(height: 13),
+                          // _lobbySection(),
                           const SizedBox(height: 20),
                           _waitingButton(),
                           const SizedBox(height: 17),
@@ -515,105 +515,105 @@ class WaitingroomView extends GetView<WaitingroomController> {
     );
   }
 
-  // Event lobby
-  Widget _lobbySection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            children: [
-              Text(
-                'IN THIS EVENT LOBBY',
-                style: TextStyle(
-                  color: muted,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.2,
-                ),
-              ),
-              Spacer(),
-              Text(
-                'Active Room',
-                style: TextStyle(
-                  color: darkPink,
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            SizedBox(
-              width: 151,
-              height: 38,
-              child: Stack(
-                children: [
-                  for (int i = 0; i < 4; i++)
-                    Positioned(
-                      left: i * 27.0,
-                      child: Container(
-                        width: 35,
-                        height: 35,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: ClipOval(
-                          child: Image.network(
-                            'https://i.pravatar.cc/100?img=${i + 40}',
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: const Color(0xFFF1E5F2),
-                              child: const Icon(
-                                Icons.person,
-                                size: 18,
-                                color: purple,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  Positioned(
-                    left: 112,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFFDDE5),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Text(
-                        '+10',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: darkPink,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Expanded(
-              child: Text(
-                'Compatible singles ready',
-                style: TextStyle(color: muted, fontSize: 11.5),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  // // Event lobby
+  // Widget _lobbySection() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       const Padding(
+  //         padding: EdgeInsets.symmetric(horizontal: 4),
+  //         child: Row(
+  //           children: [
+  //             Text(
+  //               'IN THIS EVENT LOBBY',
+  //               style: TextStyle(
+  //                 color: muted,
+  //                 fontSize: 11,
+  //                 fontWeight: FontWeight.w800,
+  //                 letterSpacing: 0.2,
+  //               ),
+  //             ),
+  //             Spacer(),
+  //             Text(
+  //               'Active Room',
+  //               style: TextStyle(
+  //                 color: darkPink,
+  //                 fontSize: 11.5,
+  //                 fontWeight: FontWeight.w500,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //       const SizedBox(height: 12),
+  //       Row(
+  //         children: [
+  //           SizedBox(
+  //             width: 151,
+  //             height: 38,
+  //             child: Stack(
+  //               children: [
+  //                 for (int i = 0; i < 4; i++)
+  //                   Positioned(
+  //                     left: i * 27.0,
+  //                     child: Container(
+  //                       width: 35,
+  //                       height: 35,
+  //                       decoration: BoxDecoration(
+  //                         shape: BoxShape.circle,
+  //                         border: Border.all(color: Colors.white, width: 2),
+  //                       ),
+  //                       child: ClipOval(
+  //                         child: Image.network(
+  //                           'https://i.pravatar.cc/100?img=${i + 40}',
+  //                           fit: BoxFit.cover,
+  //                           errorBuilder: (_, __, ___) => Container(
+  //                             color: const Color(0xFFF1E5F2),
+  //                             child: const Icon(
+  //                               Icons.person,
+  //                               size: 18,
+  //                               color: purple,
+  //                             ),
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 Positioned(
+  //                   left: 112,
+  //                   child: Container(
+  //                     width: 36,
+  //                     height: 36,
+  //                     alignment: Alignment.center,
+  //                     decoration: const BoxDecoration(
+  //                       color: Color(0xFFFFDDE5),
+  //                       shape: BoxShape.circle,
+  //                     ),
+  //                     child: const Text(
+  //                       '+10',
+  //                       style: TextStyle(
+  //                         fontSize: 11,
+  //                         fontWeight: FontWeight.w700,
+  //                         color: darkPink,
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //           const SizedBox(width: 8),
+  //           const Expanded(
+  //             child: Text(
+  //               'Compatible singles ready',
+  //               style: TextStyle(color: muted, fontSize: 11.5),
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ],
+  //   );
+  // }
 
   // Waiting in queue button
   Widget _waitingButton() {
@@ -650,8 +650,8 @@ class WaitingroomView extends GetView<WaitingroomController> {
             child: Center(
               child: Text(
                 controller.isSearching.value
-                    ? 'Waiting in Queue'
-                    : 'Queue Paused',
+                    ? 'Request Refund'
+                    : 'Proccesed',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 14.5,
@@ -681,7 +681,7 @@ class WaitingroomView extends GetView<WaitingroomController> {
           ),
         ),
         child: const Text(
-          'Exit & Request Refund',
+          'Exit',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
