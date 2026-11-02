@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sundaymixer/app/data/speed_date_api.dart';
 import 'package:sundaymixer/app/modules/freeeventbooking/views/freeeventbooking_view.dart';
 import 'package:sundaymixer/app/modules/live/views/live_view.dart';
+import 'package:sundaymixer/app/modules/waitingroom/views/waitingroom_view.dart';
 import 'package:sundaymixer/app/modules/notification/views/notification_view.dart';
 
 import '../../completeYourProfile/views/complete_your_profile_view.dart';
@@ -14,6 +16,23 @@ class HomeView extends GetView<HomeController> {
   static const Color purple = Color(0xFF8138D4);
   static const Color bgColor = Color(0xFFFFF8FF);
   static const Color dark = Color(0xFF24202C);
+
+  Future<void> _joinLive(String eventId) async {
+    try {
+      final status = await SpeedDateApi.join(eventId);
+      if (status.phase == 'incall') {
+        Get.to(() => LiveView(eventId: eventId));
+        return;
+      }
+      Get.to(() => WaitingroomView(eventId: eventId));
+    } catch (error) {
+      Get.snackbar(
+        'Live',
+        '$error'.replaceFirst('Exception: ', ''),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
 
   static const LinearGradient appGradient = LinearGradient(
     colors: [Color(0xFFEB4078), Color(0xFF7932E6)],
@@ -636,7 +655,7 @@ class HomeView extends GetView<HomeController> {
             _gradientButton(
               text: 'Join Live Event',
               icon: Icons.arrow_forward_rounded,
-              onTap: () => Get.to(() => LiveView(eventId: event.id)),
+              onTap: () => _joinLive(event.id),
             ),
           ],
         ),

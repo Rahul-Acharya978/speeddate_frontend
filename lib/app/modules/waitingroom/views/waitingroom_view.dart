@@ -2,12 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sundaymixer/app/modules/matchfound/views/matchfound_view.dart';
-
 import '../controllers/waitingroom_controller.dart';
 
 class WaitingroomView extends GetView<WaitingroomController> {
-  const WaitingroomView({super.key});
+  const WaitingroomView({super.key, this.eventId});
+
+  final String? eventId;
 
   static const Color pink = Color(0xFFFF477E);
   static const Color purple = Color(0xFF8749F5);
@@ -18,7 +18,8 @@ class WaitingroomView extends GetView<WaitingroomController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(WaitingroomController());
+    final waiting = Get.put(WaitingroomController());
+    waiting.watch(eventId);
     return Scaffold(
       backgroundColor: bg,
       body: SafeArea(
@@ -166,17 +167,21 @@ class WaitingroomView extends GetView<WaitingroomController> {
         color: const Color(0xFFF1EAF9),
         borderRadius: BorderRadius.circular(24),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.circle, color: darkPink, size: 9),
-          SizedBox(width: 8),
-          Text(
-            'Queue Active • Event #284',
-            style: TextStyle(
-              color: textColor,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+          const Icon(Icons.circle, color: darkPink, size: 9),
+          const SizedBox(width: 8),
+          Obx(
+            () => Text(
+              controller.eventName.value.isEmpty
+                  ? 'Queue Active'
+                  : 'Queue Active • ${controller.eventName.value}',
+              style: const TextStyle(
+                color: textColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],
@@ -219,14 +224,16 @@ class WaitingroomView extends GetView<WaitingroomController> {
                   ),
                 ),
                 const SizedBox(height: 3),
-                const Text(
-                  'Expected time left\nof 3:00 pool',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: muted,
-                    fontSize: 11.5,
-                    height: 1.25,
-                    fontWeight: FontWeight.w600,
+                Obx(
+                  () => Text(
+                    'Expected time left\nof ${controller.roundLabel} pool',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: muted,
+                      fontSize: 11.5,
+                      height: 1.25,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -339,12 +346,14 @@ class WaitingroomView extends GetView<WaitingroomController> {
                 const Spacer(),
                 const Icon(Icons.speed_rounded, size: 13, color: muted),
                 const SizedBox(width: 4),
-                const Text(
-                  'Avg. wait: 3m',
-                  style: TextStyle(
-                    color: muted,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
+                Obx(
+                  () => Text(
+                    controller.averageWaitLabel,
+                    style: const TextStyle(
+                      color: muted,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
@@ -380,7 +389,7 @@ class WaitingroomView extends GetView<WaitingroomController> {
                 const Spacer(),
                 Obx(
                   () => Text(
-                    '${controller.matchAttempt.value} of 3',
+                    '${controller.matchCount.value} of ${controller.matchTarget.value}',
                     style: const TextStyle(
                       color: darkPink,
                       fontSize: 11,
@@ -391,63 +400,59 @@ class WaitingroomView extends GetView<WaitingroomController> {
               ],
             ),
             const SizedBox(height: 9),
-            Row(
+            Obx(() => Row(
               children: [
-                Expanded(
-                  child: _attemptItem(
-                    number: 1,
-                    title: 'Match 1',
-                    subtitle: 'Confirmed',
-                    color: const Color(0xFFF7EEFF),
-                    statusColor: const Color(0xFF079B70),
-                    icon: Icons.check_rounded,
-                  ),
-                ),
+                Expanded(child: _matchSlot(1)),
                 const SizedBox(width: 4),
-                Expanded(
-                  child: _attemptItem(
-                    number: 2,
-                    title: 'Match 2',
-                    subtitle: 'Searching',
-                    color: const Color(0xFFFFE9ED),
-                    statusColor: const Color(0xFFB92775),
-                    icon: Icons.circle,
-                  ),
-                ),
+                Expanded(child: _matchSlot(2)),
                 const SizedBox(width: 4),
-                Expanded(
-                  child: _attemptItem(
-                    number: 3,
-                    title: 'Match 3',
-                    subtitle: 'Queued',
-                    color: const Color(0xFFFFF9FB),
-                    statusColor: const Color(0xFFEEDFE7),
-                    icon: Icons.circle,
-                  ),
-                ),
+                Expanded(child: _matchSlot(3)),
               ],
-            ),
+            )),
             const SizedBox(height: 13),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.verified_outlined,
-                  size: 14,
-                  color: Color(0xFF079B70),
-                ),
-                SizedBox(width: 5),
-                Flexible(
-                  child: Text(
-                    '1 match confirmed  •  Next pairing starting soon',
-                    style: TextStyle(fontSize: 11.5, color: muted),
+            Obx(
+              () => Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.verified_outlined,
+                    size: 14,
+                    color: Color(0xFF079B70),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      controller.confirmedLine,
+                      style: const TextStyle(fontSize: 11.5, color: muted),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _matchSlot(int number) {
+    final confirmed = controller.attemptConfirmed(number);
+    final searching = controller.attemptSearching(number);
+    return _attemptItem(
+      number: number,
+      title: 'Match $number',
+      subtitle: controller.attemptSubtitle(number),
+      color: confirmed
+          ? const Color(0xFFF7EEFF)
+          : searching
+              ? const Color(0xFFFFE9ED)
+              : const Color(0xFFFFF9FB),
+      statusColor: confirmed
+          ? const Color(0xFF079B70)
+          : searching
+              ? const Color(0xFFB92775)
+              : const Color(0xFFEEDFE7),
+      icon: confirmed ? Icons.check_rounded : Icons.circle,
     );
   }
 
@@ -636,17 +641,7 @@ class WaitingroomView extends GetView<WaitingroomController> {
           color: Colors.transparent,
           child: InkWell(
             borderRadius: BorderRadius.circular(32),
-            onTap: () {
-              Get.to(MatchfoundView());
-              // Get.snackbar(
-              //   'Live Queue',
-              //   controller.isSearching.value
-              //       ? 'You are waiting for your next match.'
-              //       : 'You have left the queue.',
-              //   snackPosition: SnackPosition.BOTTOM,
-              //   margin: const EdgeInsets.all(14),
-              // );
-            },
+            onTap: controller.requestRefund,
             child: Center(
               child: Text(
                 controller.isSearching.value

@@ -1,11 +1,9 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:livekit_client/livekit_client.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/data/speed_date_api.dart';
 import 'package:sundaymixer/app/modules/waitingroom/views/waitingroom_view.dart';
 
 class LiveController extends GetxController {
@@ -26,14 +24,15 @@ class LiveController extends GetxController {
   final Rxn<VideoTrack> remoteVideo = Rxn<VideoTrack>();
   final Rxn<VideoTrack> localVideo = Rxn<VideoTrack>();
   Timer? _timer;
+  Timer? _poll;
   Room? _room;
   EventsListener<RoomEvent>? _roomListener;
   String? _activeEventId;
-  String? _failedEventId;
+  String? _connectedRoom;
   int _joinGeneration = 0;
-
-  static const String tokenApiUrl =
-      'https://dateapi.spinfotechindia.com/livekit/token';
+  int roundLimit = 210;
+  bool _redirecting = false;
+  bool _syncing = false;
 
   @override
   void onInit() {
@@ -50,6 +49,11 @@ class LiveController extends GetxController {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (isCallEnded.value) {
         timer.cancel();
+        return;
+      }
+
+      if (_activeEventId != null) {
+        if (seconds.value < roundLimit) seconds.value++;
         return;
       }
 
@@ -71,23 +75,57 @@ class LiveController extends GetxController {
 
   void allowRejoin() {
     _joinGeneration++;
+    _poll?.cancel();
     _activeEventId = null;
-    _failedEventId = null;
+    _connectedRoom = null;
   }
 
   void ensureJoined(String? eventId) {
     if (eventId == null || eventId.isEmpty) return;
-    if (_activeEventId == eventId || _failedEventId == eventId) return;
+    if (_activeEventId == eventId) return;
     _activeEventId = eventId;
-    Future.microtask(() => joinEvent(eventId));
+    _redirecting = false;
+    _poll?.cancel();
+    _poll = Timer.periodic(const Duration(seconds: 1), (_) => syncCall());
+    Future.microtask(syncCall);
   }
 
-  Future<void> joinEvent(String eventId) async {
+  Future<void> syncCall() async {
+    final eventId = _activeEventId;
+    if (eventId == null || _redirecting || _syncing) return;
+    _syncing = true;
+    try {
+      var status = await SpeedDateApi.status(eventId);
+      if (status.phase == 'not_joined') {
+        status = await SpeedDateApi.join(eventId);
+      }
+      roundLimit = status.roundSeconds;
+      if (status.phase == 'incall' && status.token.isNotEmpty) {
+        seconds.value = status.elapsedSeconds;
+        if (_connectedRoom != status.room) {
+          final connected = await _connectPair(status.url, status.token);
+          if (connected) _connectedRoom = status.room;
+        }
+        return;
+      }
+      if (status.phase != 'incall') {
+        _redirecting = true;
+        _poll?.cancel();
+        await leaveRoom(keepEvent: true);
+        Get.off(() => WaitingroomView(eventId: eventId));
+      }
+    } catch (_) {
+    } finally {
+      _syncing = false;
+    }
+  }
+
+  Future<bool> _connectPair(String url, String token) async {
     final generation = _joinGeneration;
     isConnecting.value = true;
     try {
       await leaveRoom(keepEvent: true);
-      final session = await _requestSession(eventId);
+      _connectedRoom = null;
       final room = Room();
       _room = room;
       _roomListener = room.createListener()
@@ -96,58 +134,25 @@ class LiveController extends GetxController {
         ..on<LocalTrackPublishedEvent>((_) => _syncTracks())
         ..on<LocalTrackUnpublishedEvent>((_) => _syncTracks())
         ..on<ParticipantDisconnectedEvent>((_) => _syncTracks());
-
-      await room.connect(session.url, session.token);
+      await room.connect(url, token);
       if (generation != _joinGeneration) {
         await room.disconnect();
-        return;
+        return false;
       }
       await room.localParticipant?.setMicrophoneEnabled(isMicOn.value);
       await room.localParticipant?.setCameraEnabled(isCameraOn.value);
       _syncTracks();
-    } catch (error) {
-      _failedEventId = eventId;
-      await leaveRoom();
+      return true;
+    } catch (_) {
       Get.snackbar(
         'Live',
-        'Could not join this event',
+        'Could not connect the video call',
         snackPosition: SnackPosition.BOTTOM,
       );
+      return false;
     } finally {
       isConnecting.value = false;
     }
-  }
-
-  Future<({String url, String token})> _requestSession(String eventId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final token =
-        prefs.getString('tokenData') ?? prefs.getString('token') ?? '';
-    if (token.isEmpty) {
-      throw Exception('Login required');
-    }
-
-    final response = await http.post(
-      Uri.parse(tokenApiUrl),
-      headers: {
-        'Authorization': token.startsWith('Bearer ') ? token : 'Bearer $token',
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      },
-      body: jsonEncode({'eventId': eventId}),
-    );
-
-    final body = jsonDecode(response.body);
-    final data = body is Map ? body['data'] : null;
-    if (response.statusCode != 200 || data is! Map) {
-      throw Exception('Token request failed');
-    }
-
-    final url = data['url']?.toString() ?? '';
-    final roomToken = data['token']?.toString() ?? '';
-    if (url.isEmpty || roomToken.isEmpty) {
-      throw Exception('Live session is incomplete');
-    }
-    return (url: url, token: roomToken);
   }
 
   void _syncTracks() {
@@ -224,8 +229,27 @@ class LiveController extends GetxController {
           ),
           TextButton(
             onPressed: () async {
-              await leaveRoom();
-              Get.off(() => const WaitingroomView());
+              final eventId = _activeEventId;
+              Get.back();
+              if (eventId == null) {
+                await leaveRoom();
+                Get.off(() => const WaitingroomView());
+                return;
+              }
+              try {
+                final status = await SpeedDateApi.rotate(eventId);
+                if (status.phase == 'incall' && status.token.isNotEmpty) {
+                  roundLimit = status.roundSeconds;
+                  seconds.value = status.elapsedSeconds;
+                  final connected = await _connectPair(status.url, status.token);
+                  if (connected) _connectedRoom = status.room;
+                  return;
+                }
+              } catch (_) {}
+              _redirecting = true;
+              _poll?.cancel();
+              await leaveRoom(keepEvent: true);
+              Get.off(() => WaitingroomView(eventId: eventId));
             },
             child: const Text(
               'End Call',
@@ -256,6 +280,10 @@ class LiveController extends GetxController {
         timer.cancel();
         return;
       }
+      if (_activeEventId != null) {
+        if (seconds.value < roundLimit) seconds.value++;
+        return;
+      }
       if (seconds.value >= 180) {
         timer.cancel();
         endCall();
@@ -268,6 +296,7 @@ class LiveController extends GetxController {
   @override
   void onClose() {
     _timer?.cancel();
+    _poll?.cancel();
     leaveRoom();
     super.onClose();
   }
