@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sundaymixer/app/data/event_booking_api.dart';
 import 'package:sundaymixer/app/modules/refundflow1/views/refundflow1_view.dart';
 
 import '../../refundflow2/views/refundflow2_view.dart';
@@ -35,7 +36,11 @@ class Refundflow1Controller extends GetxController {
   }
 
   void requestRefund() {
-   Get.to(Refundflow2View());
+    final eventId = Get.arguments?.toString() ?? '';
+    if (eventId.isNotEmpty) {
+      EventBookingApi.requestRefund(eventId);
+    }
+    Get.to(() => const Refundflow2View());
   }
 
   void showHelp() {

@@ -7,7 +7,9 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sundaymixer/app/data/api_config.dart';
+import 'package:sundaymixer/app/data/event_booking_api.dart';
 import 'package:sundaymixer/app/modules/freebookingSuccessful/views/freebooking_successful_view.dart';
+import 'package:sundaymixer/app/modules/home/controllers/home_controller.dart';
 
 class FreeeventselfiController extends GetxController {
   final RxInt count = 0.obs;
@@ -410,10 +412,7 @@ class FreeeventselfiController extends GetxController {
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: () {
-                    Get.back();
-                    Get.off(() => const FreebookingSuccessfulView());
-                  },
+                  onPressed: continueAfterSelfie,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,
@@ -506,6 +505,20 @@ class FreeeventselfiController extends GetxController {
   @override
   void onClose() {
     super.onClose();
+  }
+
+  Future<void> continueAfterSelfie() async {
+    final id = Get.arguments?.toString() ?? '';
+    final error = await EventBookingApi.book(id);
+    if (error != null) {
+      Get.snackbar('Booking', error, snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    if (Get.isRegistered<HomeController>()) {
+      Get.find<HomeController>().fetchHomeEvents();
+    }
+    Get.back();
+    Get.off(() => const FreebookingSuccessfulView());
   }
 
   void increment() => count.value++;

@@ -4,7 +4,7 @@ import '../../chatscreen/views/chatscreen_view.dart';
 import '../controllers/bottom_controller.dart';
 import '../../home/views/home_view.dart';
 import '../../events/views/events_view.dart';
-import '../../live/views/live_view.dart';
+import '../../live/views/live_gate_view.dart';
 import '../../chat/views/chat_view.dart';
 import '../../userprofile/views/userprofile_view.dart';
 
@@ -28,7 +28,7 @@ class BottomView extends GetView<BottomController> {
           children: const [
             HomeView(),
             EventsView(),
-            LiveView(),
+            LiveGateView(),
             ChatscreenView(),
             UserprofileView(),
           ],

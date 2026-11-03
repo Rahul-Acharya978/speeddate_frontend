@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../freeeventbooking/views/freeeventbooking_view.dart';
+import '../../home/controllers/home_controller.dart';
 import '../controllers/events_controller.dart';
 
 const _bg = Color(0xFFFFF8FF),
@@ -86,7 +87,9 @@ class EventsView extends GetView<EventsController> {
                           ),
                         ),
                         _badge(
-                          upcoming ? '8 Scheduled' : '3 Active Now',
+                          upcoming
+                              ? '${events.length} Scheduled'
+                              : '${events.length} Active Now',
                           upcoming,
                         ),
                         const SizedBox(width: 8),
@@ -111,7 +114,12 @@ class EventsView extends GetView<EventsController> {
                       ),
                     ],
                     const SizedBox(height: 14),
-                    if (events.isEmpty)
+                    if (controller.isLoading.value && events.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(35),
+                        child: Center(child: CircularProgressIndicator(color: _pink)),
+                      )
+                    else if (events.isEmpty)
                       const Padding(
                         padding: EdgeInsets.all(35),
                         child: Center(
@@ -240,7 +248,7 @@ class EventsView extends GetView<EventsController> {
                 const SizedBox(height: 6),
                 _detail(
                   Icons.location_on_outlined,
-                  '${e['city']} (${e['venue']})',
+                  _place(e, wrapped: true),
                 ),
                 const SizedBox(height: 10),
                 Row(
@@ -249,7 +257,7 @@ class EventsView extends GetView<EventsController> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '+${e['joined']} joined',
+                        e['joinedLabel']?.toString() ?? '0 joined',
                         style: const TextStyle(color: _muted, fontSize: 12),
                       ),
                     ),
@@ -263,7 +271,7 @@ class EventsView extends GetView<EventsController> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
-                        '${e['spots']} spots left',
+                        e['spotsLabel']?.toString() ?? 'Live now',
                         style: const TextStyle(
                           color: Color(0xFF9F1F2E),
                           fontSize: 10,
@@ -274,7 +282,7 @@ class EventsView extends GetView<EventsController> {
                   ],
                 ),
                 const SizedBox(height: 14),
-                _button2('View Event →', () {}),
+                _button2('View Event →', () => _openEvent(e)),
               ],
             ),
           ),
@@ -319,7 +327,7 @@ class EventsView extends GetView<EventsController> {
                 const SizedBox(height: 5),
                 _detail(
                   Icons.location_on_outlined,
-                  '${e['city']} • ${e['venue']}',
+                  _place(e, wrapped: false),
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -328,7 +336,7 @@ class EventsView extends GetView<EventsController> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        '${e['joined']} / ${e['capacity']} Booked',
+                        e['bookedLabel']?.toString() ?? '0 joined',
                         style: const TextStyle(
                           color: _muted,
                           fontSize: 11,
@@ -336,9 +344,7 @@ class EventsView extends GetView<EventsController> {
                         ),
                       ),
                     ),
-                    _button('View Event →', () {
-                      Get.to(FreeeventbookingView());
-                    }, compact: true),
+                    _button('View Event →', () => _openEvent(e), compact: true),
                   ],
                 ),
               ],
@@ -392,7 +398,7 @@ class EventsView extends GetView<EventsController> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  live ? '● LIVE NOW' : e['tag'],
+                  live ? '● LIVE NOW' : (e['tag']?.toString().isNotEmpty == true ? e['tag'].toString() : 'Upcoming'),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -471,6 +477,20 @@ class EventsView extends GetView<EventsController> {
       );
     },
   );
+
+  void _openEvent(Map<String, dynamic> event) {
+    final item = event['event'];
+    if (item is! HomeEvent) return;
+    Get.to(() => const FreeeventbookingView(), arguments: item);
+  }
+
+  String _place(Map<String, dynamic> event, {required bool wrapped}) {
+    final city = event['city']?.toString() ?? '';
+    final venue = event['venue']?.toString() ?? '';
+    if (city.isEmpty) return venue.isEmpty ? 'Location soon' : venue;
+    if (venue.isEmpty || venue == city) return city;
+    return wrapped ? '$city ($venue)' : '$city • $venue';
+  }
 
   Widget _detail(IconData icon, String text) => Row(
     crossAxisAlignment: CrossAxisAlignment.start,

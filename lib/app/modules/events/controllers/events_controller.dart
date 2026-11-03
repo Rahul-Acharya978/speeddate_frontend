@@ -1,16 +1,21 @@
+import 'dart:convert';
+
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/data/api_config.dart';
+
+import '../../home/controllers/home_controller.dart';
 
 class EventsController extends GetxController {
-  //TODO: Implement EventsController
-
   final count = 0.obs;
-  final selectedTab = 0.obs; // 0 = Live, 1 = Upcoming
+  final selectedTab = 0.obs;
 
-  final activeCities = <String>{'Indore'}.obs;
-  final selectedDate = 'Today'.obs;
+  final activeCities = <String>{}.obs;
+  final selectedDate = ''.obs;
   final favorites = <int>{}.obs;
-
-  final cities = ['Indore', 'Bhopal', 'Ahmedabad', 'Mumbai', 'Bengaluru'];
+  final cities = <String>[].obs;
+  final isLoading = false.obs;
 
   final dates = [
     'Today',
@@ -18,85 +23,16 @@ class EventsController extends GetxController {
     'Next Week',
     'This Month',
     'Next Month',
-    'Custom Date',
   ];
 
-  final liveEvents = [
-    {
-      'title': 'Friday Night Speed Dating',
-      'city': 'Indore',
-      'venue': 'High Street Social, AB Road',
-      'price': '₹249',
-      'joined': 24,
-      'spots': 6,
-      'status': 'LIVE NOW',
-      'time': 'Started 15m ago • Round 2 of 5',
-      'image':
-          'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=900',
-    },
-    {
-      'title': 'Creatives & Introverts Mixer',
-      'city': 'Bhopal',
-      'venue': 'Artisan Alley Lounge',
-      'price': '₹199',
-      'joined': 18,
-      'spots': 4,
-      'status': 'LIVE NOW',
-      'time': 'Started 10m ago • 3-min micro dates',
-      'image':
-          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900',
-    },
-    {
-      'title': 'Coffee & Conversations',
-      'city': 'Indore',
-      'venue': 'Sky Lounge, AB Road',
-      'price': '₹299',
-      'joined': 16,
-      'spots': 8,
-      'status': 'LIVE NOW',
-      'time': 'Started 20m ago • Meet new people',
-      'image':
-          'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900',
-    },
-  ];
+  final liveEvents = <Map<String, dynamic>>[].obs;
+  final upcomingEvents = <Map<String, dynamic>>[].obs;
 
-  final upcomingEvents = [
-    {
-      'title': 'Friday Night Speed Dating',
-      'city': 'Indore',
-      'venue': 'Downtown Cafe, Old Palasia',
-      'date': 'Fri, 27 Sep • 7:30 PM IST',
-      'price': '₹249',
-      'joined': 24,
-      'capacity': 30,
-      'tag': 'Selling Fast • 90% Booked',
-      'image':
-          'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=900',
-    },
-    {
-      'title': 'Coffee & Connections',
-      'city': 'Bhopal',
-      'venue': 'Roast & Toast, MP Nagar',
-      'date': 'Sat, 28 Sep • 11:30 AM IST',
-      'price': 'Free Entry',
-      'joined': 18,
-      'capacity': 25,
-      'tag': 'Popular',
-      'image':
-          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=900',
-    },
-    {
-      'title': 'Weekend Sunset Rooftop Meetup',
-      'city': 'Indore',
-      'venue': 'Sky Lounge, AB Road',
-      'date': 'Sun, 29 Sep • 6:30 PM IST',
-      'price': '₹299',
-      'joined': 20,
-      'capacity': 35,
-      'tag': 'Curated Singles',
-      'image':
-          'https://images.unsplash.com/photo-1511988617509-a57c8a288659?w=900',
-    },
+  static const _images = [
+    'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=900&q=80',
+    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=900&q=80',
+    'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=900&q=80',
+    'https://images.unsplash.com/photo-1511988617509-a57c8a288659?auto=format&fit=crop&w=900&q=80',
   ];
 
   void changeTab(int index) {
@@ -120,7 +56,7 @@ class EventsController extends GetxController {
   }
 
   void selectDate(String date) {
-    selectedDate.value = date;
+    selectedDate.value = selectedDate.value == date ? '' : date;
   }
 
   void clearFilters() {
@@ -133,32 +69,121 @@ class EventsController extends GetxController {
   }
 
   List<Map<String, dynamic>> get filteredLiveEvents {
-    return liveEvents.where((event) {
-      return activeCities.isEmpty ||
-          activeCities.contains(event['city']);
-    }).toList();
+    return liveEvents.where((event) => _matchesCity(event)).toList();
   }
 
   List<Map<String, dynamic>> get filteredUpcomingEvents {
-    return upcomingEvents.where((event) {
-      return activeCities.isEmpty ||
-          activeCities.contains(event['city']);
+    return upcomingEvents
+        .where((event) => _matchesCity(event) && _matchesDate(event['startsAt'] as DateTime?))
+        .toList();
+  }
+
+  bool _matchesCity(Map<String, dynamic> event) {
+    if (activeCities.isEmpty) return true;
+    return activeCities.contains(event['city']);
+  }
+
+  bool _matchesDate(DateTime? start) {
+    final filter = selectedDate.value;
+    if (filter.isEmpty) return true;
+    if (start == null) return false;
+
+    final now = DateTime.now();
+    final day = DateTime(start.year, start.month, start.day);
+    final today = DateTime(now.year, now.month, now.day);
+
+    switch (filter) {
+      case 'Today':
+        return day == today;
+      case 'Tomorrow':
+        return day == today.add(const Duration(days: 1));
+      case 'Next Week':
+        final from = today.add(const Duration(days: 2));
+        final until = today.add(const Duration(days: 8));
+        return !day.isBefore(from) && day.isBefore(until);
+      case 'This Month':
+        return start.year == now.year && start.month == now.month && !day.isBefore(today);
+      case 'Next Month':
+        final next = DateTime(now.year, now.month + 1, 1);
+        return start.year == next.year && start.month == next.month;
+      default:
+        return true;
+    }
+  }
+
+  Future<void> fetchEvents() async {
+    try {
+      isLoading.value = true;
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('tokenData') ?? prefs.getString('token') ?? '';
+      if (token.isEmpty) return;
+
+      final response = await http.get(
+        Uri.parse(ApiConfig.url('/home/events')),
+        headers: {
+          'Authorization': token.startsWith('Bearer ') ? token : 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+      if (response.statusCode != 200) return;
+
+      final body = jsonDecode(response.body);
+      if (body is! Map || body['success'] != true) return;
+      final data = body['data'] is Map ? body['data'] as Map : {};
+
+      final live = _readEvents(data['browseLive'] ?? data['liveEvents'], live: true);
+      final upcoming = _readEvents(
+        data['browseUpcoming'] ?? data['upcomingEvents'],
+        live: false,
+      );
+      liveEvents.assignAll(live);
+      upcomingEvents.assignAll(upcoming);
+
+      final names = <String>{
+        ...live.map((item) => item['city']?.toString() ?? ''),
+        ...upcoming.map((item) => item['city']?.toString() ?? ''),
+      }..removeWhere((city) => city.isEmpty);
+      cities.assignAll(names.toList()..sort());
+      activeCities.removeWhere((city) => !names.contains(city));
+    } catch (error) {
+      print('Events API Error: $error');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  List<Map<String, dynamic>> _readEvents(dynamic raw, {required bool live}) {
+    if (raw is! List) return [];
+    final events = raw
+        .whereType<Map>()
+        .map((item) => HomeEvent.fromJson(Map<String, dynamic>.from(item)))
+        .toList();
+
+    return events.asMap().entries.map((entry) {
+      final event = entry.value;
+      final place = event.subtitle.trim().isEmpty ? event.city : event.subtitle.trim();
+      return {
+        'event': event,
+        'title': event.title.isEmpty ? 'Speed dating' : event.title,
+        'city': event.city,
+        'venue': place,
+        'price': event.isFree ? 'Free' : event.priceLabel,
+        'joinedLabel': event.joinedLabel,
+        'spotsLabel': live ? 'Live now' : event.timeLabel,
+        'bookedLabel': event.joinedLabel,
+        'time': event.isLive ? 'LIVE NOW' : event.scheduleLabel,
+        'date': '${event.dateLabel} • ${event.timeLabel}',
+        'tag': event.isFree ? 'Free entry' : 'Upcoming',
+        'image': _images[entry.key % _images.length],
+        'startsAt': event.startsAt,
+      };
     }).toList();
   }
 
   @override
   void onInit() {
     super.onInit();
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
+    fetchEvents();
   }
 
   void increment() => count.value++;

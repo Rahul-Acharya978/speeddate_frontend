@@ -140,7 +140,7 @@ class WaitingroomController extends GetxController {
       );
       return;
     }
-    Get.to(() => const Refundflow1View());
+    Get.to(() => const Refundflow1View(), arguments: _eventId);
   }
 
   Future<void> exitAndRequestRefund() async {

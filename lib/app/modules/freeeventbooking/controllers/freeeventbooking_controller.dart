@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sundaymixer/app/data/api_config.dart';
+import 'package:sundaymixer/app/data/event_booking_api.dart';
 import 'package:sundaymixer/app/modules/freebookingSuccessful/views/freebooking_successful_view.dart';
 import 'package:sundaymixer/app/modules/freeeventselfi/views/freeeventselfi_view.dart';
 import 'package:sundaymixer/app/modules/home/controllers/home_controller.dart';
@@ -64,11 +65,12 @@ class FreeeventbookingController extends GetxController {
       final data = body is Map ? body['data'] : null;
       final verified = data is Map && data['profileVerified'] == true;
       final submitted = data is Map && data['selfieSubmitted'] == true;
-      if (verified || submitted) {
-        Get.to(() => const FreebookingSuccessfulView());
+      final selfieRequired = data is! Map || data['selfieRequired'] != false;
+      if (!selfieRequired || verified || submitted) {
+        await _saveBooking();
         return;
       }
-      Get.to(() => const FreeeventselfiView());
+      Get.to(() => const FreeeventselfiView(), arguments: event?.id ?? '');
     } catch (_) {
       Get.snackbar(
         'Booking',
@@ -78,6 +80,18 @@ class FreeeventbookingController extends GetxController {
     } finally {
       isBooking.value = false;
     }
+  }
+
+  Future<void> _saveBooking() async {
+    final error = await EventBookingApi.book(event?.id ?? '');
+    if (error != null) {
+      Get.snackbar('Booking', error, snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+    if (Get.isRegistered<HomeController>()) {
+      Get.find<HomeController>().fetchHomeEvents();
+    }
+    Get.to(() => const FreebookingSuccessfulView());
   }
 
   void bookFreeEvent() {

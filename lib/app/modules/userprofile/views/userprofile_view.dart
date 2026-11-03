@@ -68,14 +68,27 @@ class UserprofileView extends GetView<UserprofileController> {
               ),
               children: [
                 _profileHeader(),
-                const SizedBox(height: 20),
-                _aboutCard(),
-                const SizedBox(height: 20),
-                _interestedCard(),
-                const SizedBox(height: 20),
-                _professionalCard(),
-                const SizedBox(height: 20),
-                _interestsCard(),
+                Obx(() {
+                  if (controller.about.value.trim().isEmpty) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: _aboutCard(),
+                  );
+                }),
+                Obx(() {
+                  if (controller.interested.isEmpty) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: _interestedCard(),
+                  );
+                }),
+                Obx(() {
+                  if (controller.professional.isEmpty) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: _professionalCard(),
+                  );
+                }),
                 const SizedBox(height: 16),
                 _activityCard(),
                 const SizedBox(height: 16),
@@ -118,56 +131,81 @@ class UserprofileView extends GetView<UserprofileController> {
                       colors: [profilePink, profilePurple],
                     ),
                   ),
-                  child: const CircleAvatar(
-                    radius: 45,
-                    backgroundColor: Color(0xFFF0E3DC),
-                    backgroundImage: NetworkImage(
-                      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300',
-                    ),
-                  ),
+                  child: Obx(() {
+                    final photo = controller.photoUrl.value;
+                    return CircleAvatar(
+                      radius: 45,
+                      backgroundColor: const Color(0xFFF0E3DC),
+                      backgroundImage: photo.isEmpty ? null : NetworkImage(photo),
+                      child: photo.isEmpty
+                          ? const Icon(Icons.person, size: 42, color: profilePurple)
+                          : null,
+                    );
+                  }),
                 ),
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check_circle,
-                      color: Color(0xFF10B981),
-                      size: 22,
-                    ),
-                  ),
+                Obx(
+                  () => controller.verified.value
+                      ? Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.check_circle,
+                              color: Color(0xFF10B981),
+                              size: 22,
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink(),
                 ),
               ],
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Raj Kumar, 27',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: profileText,
-                fontSize: 23,
-                fontWeight: FontWeight.w800,
+            Obx(
+              () => Text(
+                controller.nameLine,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: profileText,
+                  fontSize: 23,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
-            const SizedBox(height: 3),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.location_on_outlined, color: profilePink, size: 16),
-                SizedBox(width: 3),
-                Text(
-                  'Indore, India',
-                  style: TextStyle(color: profileMuted, fontSize: 13),
+            Obx(() {
+              final details = [
+                if (controller.city.value.isNotEmpty) controller.city.value,
+                if (controller.gender.value.isNotEmpty) controller.gender.value,
+              ].join(' • ');
+              if (details.isEmpty) return const SizedBox.shrink();
+              return Padding(
+                padding: const EdgeInsets.only(top: 3),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.location_on_outlined, color: profilePink, size: 16),
+                    const SizedBox(width: 3),
+                    Flexible(
+                      child: Text(
+                        details,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: profileMuted, fontSize: 13),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Container(
+              );
+            }),
+            Obx(() {
+              if (!controller.verified.value) return const SizedBox(height: 8);
+              return Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 5),
               decoration: BoxDecoration(
                 color: const Color(0xFFF2E9FC),
@@ -188,7 +226,9 @@ class UserprofileView extends GetView<UserprofileController> {
                   ),
                 ],
               ),
-            ),
+                ),
+              );
+            }),
             const SizedBox(height: 16),
             Container(
               width: double.infinity,
@@ -197,9 +237,9 @@ class UserprofileView extends GetView<UserprofileController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
-                      Expanded(
+                      const Expanded(
                         child: Text(
                           'Profile Completion',
                           style: TextStyle(
@@ -209,12 +249,14 @@ class UserprofileView extends GetView<UserprofileController> {
                           ),
                         ),
                       ),
-                      Text(
-                        '90%',
-                        style: TextStyle(
-                          color: Color(0xFFD41455),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
+                      Obx(
+                        () => Text(
+                          '${controller.completion.value}%',
+                          style: const TextStyle(
+                            color: Color(0xFFD41455),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                     ],
@@ -233,11 +275,13 @@ class UserprofileView extends GetView<UserprofileController> {
                           stops: [0.0, 0.5, 1.0],
                         ).createShader(bounds);
                       },
-                      child: const LinearProgressIndicator(
-                        value: 0.9,
-                        minHeight: 8,
-                        backgroundColor: Color(0xFFE6DDEC),
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      child: Obx(
+                        () => LinearProgressIndicator(
+                          value: (controller.completion.value / 100).clamp(0.0, 1.0),
+                          minHeight: 8,
+                          backgroundColor: const Color(0xFFE6DDEC),
+                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
                       ),
                     ),
                   ),
@@ -282,9 +326,11 @@ class UserprofileView extends GetView<UserprofileController> {
               ],
             ),
             const SizedBox(height: 6),
-            const Text(
-              'Love meeting new people, exploring new places and having meaningful conversations.',
-              style: TextStyle(color: profileMuted, fontSize: 14, height: 1.55),
+            Obx(
+              () => Text(
+                controller.about.value,
+                style: const TextStyle(color: profileMuted, fontSize: 14, height: 1.55),
+              ),
             ),
           ],
         ),
@@ -300,17 +346,20 @@ class UserprofileView extends GetView<UserprofileController> {
           children: [
             const _heading('Interested In'),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _tag(
-                  '♥  Dating',
-                  const Color(0xFFFFF0F3),
-                  const Color(0xFFC21850),
-                ),
-                _tag('♧  Networking', const Color(0xFFF5EEFF), profilePurple),
-              ],
+            Obx(
+              () => Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: controller.interested
+                    .map(
+                      (item) => _tag(
+                        item,
+                        item == 'Dating' ? const Color(0xFFFFF0F3) : const Color(0xFFF5EEFF),
+                        item == 'Dating' ? const Color(0xFFC21850) : profilePurple,
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
           ],
         ),
@@ -326,17 +375,14 @@ class UserprofileView extends GetView<UserprofileController> {
           children: [
             const _heading('Professional Interests'),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _tag('IT & Technology', const Color(0xFFF2E9FC), profileText),
-                _tag(
-                  'Software Development',
-                  const Color(0xFFF2E9FC),
-                  profileText,
-                ),
-              ],
+            Obx(
+              () => Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: controller.professional
+                    .map((item) => _tag(item, const Color(0xFFF2E9FC), profileText))
+                    .toList(),
+              ),
             ),
           ],
         ),
@@ -377,19 +423,23 @@ class UserprofileView extends GetView<UserprofileController> {
           children: [
             const _heading('Event Activity'),
             const SizedBox(height: 12),
-            _activityRow(
-              icon: Icons.confirmation_num_outlined,
-              title: 'Events Joined',
-              count: '4',
+            Obx(
+              () => _activityRow(
+                icon: Icons.confirmation_num_outlined,
+                title: 'Events Joined',
+                count: '${controller.eventsJoined.value}',
+              ),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Divider(height: 1, color: Color(0xFFF0E6F4)),
             ),
-            _activityRow(
-              icon: Icons.people_outline,
-              title: 'Mutual Matches',
-              count: '5',
+            Obx(
+              () => _activityRow(
+                icon: Icons.people_outline,
+                title: 'Mutual Matches',
+                count: '${controller.mutualMatches.value}',
+              ),
             ),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
@@ -402,7 +452,7 @@ class UserprofileView extends GetView<UserprofileController> {
               child: _activityRow(
                 icon: Icons.favorite,
                 title: 'Like and save event',
-                count: '5',
+                count: '0',
               ),
             ),
           ],
@@ -491,21 +541,28 @@ class UserprofileView extends GetView<UserprofileController> {
                       color: const Color(0xFFE8FBF2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check, color: Color(0xFF009B69), size: 14),
-                        SizedBox(width: 3),
-                        Text(
-                          'Verified',
-                          style: TextStyle(
-                            color: Color(0xFF009B69),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                    child: Obx(() {
+                      final verified = controller.verified.value;
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            verified ? Icons.check : Icons.schedule,
+                            color: verified ? const Color(0xFF009B69) : profileMuted,
+                            size: 14,
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 3),
+                          Text(
+                            verified ? 'Verified' : 'Pending',
+                            style: TextStyle(
+                              color: verified ? const Color(0xFF009B69) : profileMuted,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
                   ),
                 ],
               ),
