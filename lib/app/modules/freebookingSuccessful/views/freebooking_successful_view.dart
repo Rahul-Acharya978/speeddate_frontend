@@ -54,10 +54,19 @@ class FreebookingSuccessfulView
                     const SizedBox(height: 20),
                     _bookingTicket(),
                     const SizedBox(height: 16),
-                    _identityCard(),
-                    const SizedBox(height: 56),
-                    _verifyButton(),
-                    const SizedBox(height: 9),
+                    Obx(() {
+                      if (!controller.showSelfie.value) {
+                        return const SizedBox(height: 8);
+                      }
+                      return Column(
+                        children: [
+                          _identityCard(),
+                          const SizedBox(height: 56),
+                          _verifyButton(),
+                          const SizedBox(height: 9),
+                        ],
+                      );
+                    }),
                     _homeButton(),
                   ],
                 ),

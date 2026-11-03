@@ -123,7 +123,7 @@ class FreeeventbookingController extends GetxController {
       final data = body is Map ? body['data'] : null;
       final verified = data is Map && data['profileVerified'] == true;
       final submitted = data is Map && data['selfieSubmitted'] == true;
-      final selfieRequired = data is! Map || data['selfieRequired'] != false;
+      final selfieRequired = data is Map && data['selfieRequired'] == true;
       if (!selfieRequired || verified || submitted) {
         await _saveBooking();
         return;
@@ -147,7 +147,9 @@ class FreeeventbookingController extends GetxController {
       return;
     }
     if (Get.isRegistered<HomeController>()) {
-      Get.find<HomeController>().fetchHomeEvents();
+      final home = Get.find<HomeController>();
+      home.fetchHomeEvents();
+      home.fetchMyProfile(showLoader: false);
     }
     Get.to(() => const FreebookingSuccessfulView());
   }

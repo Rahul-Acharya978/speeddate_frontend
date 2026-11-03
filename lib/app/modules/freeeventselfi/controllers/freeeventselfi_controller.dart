@@ -41,7 +41,9 @@ class FreeeventselfiController extends GetxController {
       final XFile? image = await _picker.pickImage(
         source: ImageSource.camera,
         preferredCameraDevice: CameraDevice.front,
-        imageQuality: 85,
+        imageQuality: 90,
+        maxWidth: 1920,
+        maxHeight: 1920,
       );
 
       if (image == null) return;

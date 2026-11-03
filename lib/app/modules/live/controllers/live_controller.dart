@@ -23,6 +23,7 @@ class LiveController extends GetxController {
   final RxBool isConnecting = false.obs;
   final Rxn<VideoTrack> remoteVideo = Rxn<VideoTrack>();
   final Rxn<VideoTrack> localVideo = Rxn<VideoTrack>();
+  final RxBool sawRemote = false.obs;
   Timer? _timer;
   Timer? _poll;
   Room? _room;
@@ -177,12 +178,14 @@ class LiveController extends GetxController {
       }
     }
     remoteVideo.value = remote;
+    if (remote != null) sawRemote.value = true;
   }
 
   Future<void> leaveRoom({bool keepEvent = false}) async {
     if (!keepEvent) _activeEventId = null;
     remoteVideo.value = null;
     localVideo.value = null;
+    sawRemote.value = false;
     await _roomListener?.dispose();
     _roomListener = null;
     await _room?.disconnect();

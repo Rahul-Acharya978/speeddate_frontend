@@ -39,11 +39,17 @@ class LiveView extends GetView<LiveController> {
                       fit: VideoViewFit.cover,
                     );
                   }
+                  if (!controller.sawRemote.value) return const _MatchFoundScreen();
                   return _cameraOffPlaceholder(avatar: 148);
                 }),
 
                 // Dark overlay for text visibility
-                const DecoratedBox(
+                Obx(() {
+                  if (controller.remoteVideo.value == null &&
+                      !controller.sawRemote.value) {
+                    return const SizedBox.shrink();
+                  }
+                  return const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
@@ -57,7 +63,8 @@ class LiveView extends GetView<LiveController> {
                       stops: [0.0, 0.25, 0.60, 1.0],
                     ),
                   ),
-                ),
+                );
+                }),
 
                 SafeArea(
                   child: Stack(
@@ -447,4 +454,103 @@ class _NavItem {
   final String label;
 
   const _NavItem(this.icon, this.label);
+}
+
+class _MatchFoundScreen extends StatefulWidget {
+  const _MatchFoundScreen();
+
+  @override
+  State<_MatchFoundScreen> createState() => _MatchFoundScreenState();
+}
+
+class _MatchFoundScreenState extends State<_MatchFoundScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF2A0A2E), Color(0xFF8E1D55), Color(0xFF5B2BE0)],
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(32, 24, 32, 120),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ScaleTransition(
+              scale: Tween<double>(begin: 0.94, end: 1.06).animate(
+                CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
+              ),
+              child: Container(
+                width: 112,
+                height: 112,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.16),
+                  border: Border.all(color: const Color(0x55FFFFFF), width: 10),
+                ),
+                child: const Icon(
+                  Icons.favorite_rounded,
+                  color: Colors.white,
+                  size: 52,
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.16),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                'MATCH FOUND',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  letterSpacing: 1.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              "You'll be connected\nvery shortly",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 28,
+                height: 1.15,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'A match has been found. Your video will start in a moment.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFFF8D5E6),
+                fontSize: 15,
+                height: 1.45,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

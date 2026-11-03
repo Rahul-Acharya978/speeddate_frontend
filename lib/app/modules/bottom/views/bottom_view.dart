@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sundaymixer/app/widgets/exit_confirm.dart';
 import '../../chatscreen/views/chatscreen_view.dart';
 import '../controllers/bottom_controller.dart';
 import '../../home/views/home_view.dart';
@@ -20,7 +21,8 @@ class BottomView extends GetView<BottomController> {
   Widget build(BuildContext context) {
     Get.put(BottomController());
 
-    return Scaffold(
+    return ExitConfirm(
+      child: Scaffold(
       backgroundColor: Colors.white,
       body: Obx(
         () => IndexedStack(
@@ -35,6 +37,7 @@ class BottomView extends GetView<BottomController> {
         ),
       ),
       bottomNavigationBar: _bottomNavigation(),
+      ),
     );
   }
 

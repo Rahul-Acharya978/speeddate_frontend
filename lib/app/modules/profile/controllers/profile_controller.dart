@@ -83,8 +83,9 @@ class ProfileController extends GetxController {
 
     final image = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
-      maxWidth: 1200,
+      imageQuality: 90,
+      maxWidth: 1920,
+      maxHeight: 1920,
     );
 
     if (image != null) {
@@ -97,8 +98,9 @@ class ProfileController extends GetxController {
 
     final image = await picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
-      maxWidth: 1200,
+      imageQuality: 90,
+      maxWidth: 1920,
+      maxHeight: 1920,
     );
 
     if (image == null) return;
@@ -120,8 +122,9 @@ class ProfileController extends GetxController {
 
     final image = await picker.pickImage(
       source: ImageSource.camera,
-      imageQuality: 85,
-      maxWidth: 1200,
+      imageQuality: 90,
+      maxWidth: 1920,
+      maxHeight: 1920,
     );
 
     if (image != null) {

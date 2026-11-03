@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sundaymixer/app/modules/otpscreen/views/otpscreen_view.dart';
+import 'package:sundaymixer/app/widgets/exit_confirm.dart';
 
 import '../controllers/login_controller.dart';
 
@@ -15,7 +16,8 @@ class LoginView extends GetView<LoginController> {
   @override
   Widget build(BuildContext context) {
     Get.put(LoginController());
-    return Scaffold(
+    return ExitConfirm(
+      child: Scaffold(
       backgroundColor: background,
       appBar: AppBar(
         backgroundColor: background,
@@ -247,6 +249,7 @@ class LoginView extends GetView<LoginController> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
