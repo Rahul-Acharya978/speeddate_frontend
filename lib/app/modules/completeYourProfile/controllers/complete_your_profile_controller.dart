@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/data/api_config.dart';
 
 class CompleteYourProfileController extends GetxController {
   final count = 0.obs;
@@ -19,10 +20,10 @@ class CompleteYourProfileController extends GetxController {
   final RxList<String> selectedCities = <String>['Indore'].obs;
 
   final String profileApiUrl =
-      'https://dateapi.spinfotechindia.com/user/myprofile';
+      ApiConfig.url('/user/myprofile');
 
   final String completeProfileApiUrl =
-      'https://dateapi.spinfotechindia.com/user/completeprofile';
+      ApiConfig.url('/user/completeprofile');
 
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
@@ -36,7 +37,7 @@ class CompleteYourProfileController extends GetxController {
 
       final response = await http.get(
         Uri.parse(
-          'https://dateapi.spinfotechindia.com/user/getcity?page=0&limit=10',
+          ApiConfig.url('/user/getcity?page=0&limit=10'),
         ),
         headers: {'Accept': 'application/json'},
       );
@@ -132,7 +133,7 @@ class CompleteYourProfileController extends GetxController {
 
     final url =
         Uri.parse(
-          'https://dateapi.spinfotechindia.com/getProfessionCategories',
+          ApiConfig.url('/getProfessionCategories'),
         ).replace(
           queryParameters: {
             'page': pageKey.toString(),

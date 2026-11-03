@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'api_config.dart';
+
 class SpeedDateStatus {
   SpeedDateStatus({
     required this.phase,
@@ -68,7 +70,7 @@ class SpeedDateStatus {
 }
 
 class SpeedDateApi {
-  static const String _root = 'https://dateapi.spinfotechindia.com/speeddate';
+  static const String _root = '${ApiConfig.baseUrl}/speeddate';
 
   static Future<SpeedDateStatus> join(String eventId) {
     return _send('POST', '/join', {'eventId': eventId});

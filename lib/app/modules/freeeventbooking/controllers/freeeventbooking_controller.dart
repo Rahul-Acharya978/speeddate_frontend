@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/data/api_config.dart';
 import 'package:sundaymixer/app/modules/freebookingSuccessful/views/freebooking_successful_view.dart';
 import 'package:sundaymixer/app/modules/freeeventselfi/views/freeeventselfi_view.dart';
 import 'package:sundaymixer/app/modules/home/controllers/home_controller.dart';
@@ -53,7 +54,7 @@ class FreeeventbookingController extends GetxController {
         return;
       }
       final response = await http.get(
-        Uri.parse('https://dateapi.spinfotechindia.com/user/myprofile'),
+        Uri.parse(ApiConfig.url('/user/myprofile')),
         headers: {
           'Authorization': token.startsWith('Bearer ') ? token : 'Bearer $token',
           'Accept': 'application/json',

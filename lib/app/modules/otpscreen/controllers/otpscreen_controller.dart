@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/data/api_config.dart';
 import 'package:sundaymixer/app/modules/bottom/views/bottom_view.dart';
 
 import '../../profile/views/profile_view.dart';
@@ -137,7 +138,7 @@ class OtpscreenController extends GetxController {
       focusNode.unfocus();
 
       final response = await http.post(
-        Uri.parse('https://dateapi.spinfotechindia.com/user/verifyotp'),
+        Uri.parse(ApiConfig.url('/user/verifyotp')),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',

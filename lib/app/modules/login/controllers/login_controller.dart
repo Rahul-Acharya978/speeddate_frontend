@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:sundaymixer/app/data/api_config.dart';
 
 class LoginController extends GetxController {
   //TODO: Implement LoginController
@@ -24,7 +25,7 @@ class LoginController extends GetxController {
       isLoading.value = true;
 
       final response = await http.post(
-        Uri.parse('https://dateapi.spinfotechindia.com/user/sendotp'),
+        Uri.parse(ApiConfig.url('/user/sendotp')),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',

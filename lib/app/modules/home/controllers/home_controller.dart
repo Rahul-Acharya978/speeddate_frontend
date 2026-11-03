@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/data/api_config.dart';
 
 class HomeEvent {
   HomeEvent({
@@ -67,9 +68,9 @@ class HomeController extends GetxController {
 
   // Profile API URL
   final String profileApiUrl =
-      'https://dateapi.spinfotechindia.com/user/myprofile';
+      ApiConfig.url('/user/myprofile');
   final String homeEventsApiUrl =
-      'https://dateapi.spinfotechindia.com/home/events';
+      ApiConfig.url('/home/events');
 
   // Profile data
   final RxString name = ''.obs;

@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/data/api_config.dart';
 
 import '../../bottom/views/bottom_view.dart';
 import '../../home/views/home_view.dart';
@@ -36,7 +37,7 @@ class ProfileController extends GetxController {
       var request = http.Request(
         'GET',
         Uri.parse(
-          'https://dateapi.spinfotechindia.com/user/getcity?page=0&limit=10',
+          ApiConfig.url('/user/getcity?page=0&limit=10'),
         ),
       );
 
@@ -353,7 +354,7 @@ class ProfileController extends GetxController {
       }
 
       final uri = Uri.parse(
-        'https://dateapi.spinfotechindia.com/user/register',
+        ApiConfig.url('/user/register'),
       );
 
       final request = http.MultipartRequest('POST', uri);

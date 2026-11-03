@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/data/api_config.dart';
 import 'package:sundaymixer/app/modules/freebookingSuccessful/views/freebooking_successful_view.dart';
 
 class FreeeventselfiController extends GetxController {
@@ -170,7 +171,7 @@ class FreeeventselfiController extends GetxController {
       }
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://dateapi.spinfotechindia.com/user/selfie'),
+        Uri.parse(ApiConfig.url('/user/selfie')),
       );
       request.headers['Authorization'] =
           token.startsWith('Bearer ') ? token : 'Bearer $token';
