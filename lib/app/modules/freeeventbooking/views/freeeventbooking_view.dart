@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../freebookingSuccessful/views/freebooking_successful_view.dart';
 import '../../home/controllers/home_controller.dart';
 import '../controllers/freeeventbooking_controller.dart';
 
@@ -46,7 +45,7 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
                     _pricingCard(),
                     const SizedBox(height: 16),
                     _button2('Book Free Events', () {
-                      Get.to(FreebookingSuccessfulView());
+                      controller.continueToBook();
                     }),
                   ],
                 ),

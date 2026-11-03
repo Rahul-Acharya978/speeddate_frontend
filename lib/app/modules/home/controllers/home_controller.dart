@@ -76,6 +76,7 @@ class HomeController extends GetxController {
   final RxInt age = 0.obs;
   final RxString city = ''.obs;
   final RxBool profileVerified = false.obs;
+  final RxBool selfieSubmitted = false.obs;
   final RxInt profileCompletionPercent = 0.obs;
 
   // Loading and error handling
@@ -212,6 +213,7 @@ class HomeController extends GetxController {
           city.value = data['city']?.toString() ?? '';
 
           profileVerified.value = data['profileVerified'] == true;
+          selfieSubmitted.value = data['selfieSubmitted'] == true;
 
           profileCompletionPercent.value =
               int.tryParse(

@@ -1,8 +1,12 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/modules/freebookingSuccessful/views/freebooking_successful_view.dart';
 
 class FreeeventselfiController extends GetxController {
   final RxInt count = 0.obs;
@@ -150,17 +154,60 @@ class FreeeventselfiController extends GetxController {
     takeSelfie();
   }
 
-  void verifySelfie() {
+  Future<void> verifySelfie() async {
     if (selfieImage.value == null) {
       takeSelfie();
       return;
     }
-
-    Get.dialog(
-      selfieSubmittedDialog(),
-      barrierDismissible: false,
-      barrierColor: const Color(0x990F0715),
-    );
+    if (isTakingSelfie.value) return;
+    isTakingSelfie.value = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('tokenData') ?? prefs.getString('token') ?? '';
+      if (token.isEmpty) {
+        Get.snackbar('Login', 'Please login again.', snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('https://dateapi.spinfotechindia.com/user/selfie'),
+      );
+      request.headers['Authorization'] =
+          token.startsWith('Bearer ') ? token : 'Bearer $token';
+      request.headers['Accept'] = 'application/json';
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'selfie',
+          selfieImage.value!.path,
+          filename: selfieImage.value!.uri.pathSegments.last,
+        ),
+      );
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
+      final body = response.body.isEmpty ? {} : jsonDecode(response.body);
+      final ok = response.statusCode == 200 && body is Map && body['success'] == true;
+      if (!ok) {
+        Get.snackbar(
+          'Selfie',
+          body is Map ? (body['message']?.toString() ?? 'Could not submit the selfie') : 'Could not submit the selfie',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+      Get.dialog(
+        selfieSubmittedDialog(),
+        barrierDismissible: false,
+        barrierColor: const Color(0x990F0715),
+      );
+    } catch (_) {
+      Get.snackbar(
+        'Selfie',
+        'Could not submit the selfie. Please try again.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isTakingSelfie.value = false;
+    }
   }
 
   Widget selfieSubmittedDialog() {
@@ -364,9 +411,7 @@ class FreeeventselfiController extends GetxController {
                 child: ElevatedButton(
                   onPressed: () {
                     Get.back();
-
-                    // TODO: Navigate to your Waiting Room route.
-                    // Example: Get.toNamed(Routes.WAITING_ROOM);
+                    Get.off(() => const FreebookingSuccessfulView());
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,

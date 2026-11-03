@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sundaymixer/app/modules/bottom/views/bottom_view.dart';
 import 'package:sundaymixer/app/modules/login/views/login_view.dart';
 
-import '../../../routes/app_pages.dart';
 import '../../profile/views/profile_view.dart';
 
 class SplashScreenController extends GetxController {
@@ -43,13 +42,6 @@ class SplashScreenController extends GetxController {
   @override
   void onReady() {
     super.onReady();
-    print('Splash onReady Called');
-
-    _timer = Timer(const Duration(seconds: 2), () {
-      print('Navigating to Login');
-
-      Get.offAllNamed(Routes.LOGIN);
-    });
   }
 
   @override

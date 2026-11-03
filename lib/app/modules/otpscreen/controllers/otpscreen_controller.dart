@@ -162,22 +162,19 @@ class OtpscreenController extends GetxController {
         await prefs.setString('userId', userId);
         await prefs.setString('token', token);
         await prefs.setBool('isNew', isNew);
+        await prefs.setBool('isProfileComplete', !isNew);
         await prefs.setString('verificationStatus', verificationStatus);
         await prefs.setString('phone', phone);
-        print("Token :$token");
         Get.snackbar(
           'Success',
           verificationStatus,
           snackPosition: SnackPosition.BOTTOM,
         );
 
-        final bool isProfileComplete =
-            prefs.getBool('isProfileComplete') ?? false;
-
-        if (isProfileComplete) {
-          Get.offAll(()=>BottomView());
+        if (isNew) {
+          Get.offAll(() => const ProfileView());
         } else {
-          Get.offAll(() => ProfileView());
+          Get.offAll(() => BottomView());
         }
       } else {
         Get.snackbar(

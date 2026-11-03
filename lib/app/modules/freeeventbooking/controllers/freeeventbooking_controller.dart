@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sundaymixer/app/modules/freebookingSuccessful/views/freebooking_successful_view.dart';
+import 'package:sundaymixer/app/modules/freeeventselfi/views/freeeventselfi_view.dart';
 import 'package:sundaymixer/app/modules/home/controllers/home_controller.dart';
 
 class FreeeventbookingController extends GetxController {
@@ -34,6 +40,43 @@ class FreeeventbookingController extends GetxController {
       snackPosition: SnackPosition.BOTTOM,
       margin: const EdgeInsets.all(16),
     );
+  }
+
+  Future<void> continueToBook() async {
+    if (isBooking.value) return;
+    isBooking.value = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('tokenData') ?? prefs.getString('token') ?? '';
+      if (token.isEmpty) {
+        Get.snackbar('Login', 'Please login again.', snackPosition: SnackPosition.BOTTOM);
+        return;
+      }
+      final response = await http.get(
+        Uri.parse('https://dateapi.spinfotechindia.com/user/myprofile'),
+        headers: {
+          'Authorization': token.startsWith('Bearer ') ? token : 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+      final body = jsonDecode(response.body);
+      final data = body is Map ? body['data'] : null;
+      final verified = data is Map && data['profileVerified'] == true;
+      final submitted = data is Map && data['selfieSubmitted'] == true;
+      if (verified || submitted) {
+        Get.to(() => const FreebookingSuccessfulView());
+        return;
+      }
+      Get.to(() => const FreeeventselfiView());
+    } catch (_) {
+      Get.snackbar(
+        'Booking',
+        'Could not check verification. Please try again.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isBooking.value = false;
+    }
   }
 
   void bookFreeEvent() {

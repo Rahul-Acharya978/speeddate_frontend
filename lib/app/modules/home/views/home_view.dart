@@ -404,8 +404,14 @@ class HomeView extends GetView<HomeController> {
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
-                Flexible(child: _VerifiedBadge()),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Obx(
+                    () => controller.profileVerified.value
+                        ? const _VerifiedBadge()
+                        : const SizedBox.shrink(),
+                  ),
+                ),
                 Spacer(),
                 Obx(
                   () => Text(
