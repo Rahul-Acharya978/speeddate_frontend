@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/profile_controller.dart';
@@ -81,88 +83,126 @@ class ProfileView extends GetView<ProfileController> {
 
                     const SizedBox(height: 20),
 
-                    // Profile photo card
-                    GestureDetector(
-                      onTap: controller.pickImage,
-                      child: Container(
-                        height: 156,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(17),
-                          boxShadow: [
-                            BoxShadow(
-                              color: purple.withOpacity(0.04),
-                              blurRadius: 15,
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Container(
-                                width: 112,
-                                height: 112,
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF8EFFF),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: const Color(0xFFF5E9FC),
+                    // Profile photo and gallery
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(17),
+                        boxShadow: [
+                          BoxShadow(
+                            color: purple.withOpacity(0.04),
+                            blurRadius: 15,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          GestureDetector(
+                            onTap: controller.pickImage,
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  width: 112,
+                                  height: 112,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8EFFF),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFFF5E9FC),
+                                    ),
                                   ),
-                                ),
-                                child: Obx(
-                                  () => controller.imagePath.value.isEmpty
-                                      ? const Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.camera_alt_outlined,
-                                              size: 32,
-                                              color: Color(0xFFC20D4C),
-                                            ),
-                                            SizedBox(height: 3),
-                                            Text(
-                                              'Add Photo',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
+                                  child: Obx(
+                                    () => controller.imagePath.value.isEmpty
+                                        ? const Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.camera_alt_outlined,
+                                                size: 32,
                                                 color: Color(0xFFC20D4C),
                                               ),
+                                              SizedBox(height: 3),
+                                              Text(
+                                                'Add Photo',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFFC20D4C),
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        : ClipOval(
+                                            child: Image.file(
+                                              controller.selectedImage!,
+                                              fit: BoxFit.cover,
+                                              width: 112,
+                                              height: 112,
                                             ),
-                                          ],
-                                        )
-                                      : ClipOval(
-                                          child: Image.file(
-                                            controller.selectedImage!,
-                                            fit: BoxFit.cover,
-                                            width: 112,
-                                            height: 112,
                                           ),
-                                        ),
-                                ),
-                              ),
-                              Positioned(
-                                right: -5,
-                                bottom: 4,
-                                child: Container(
-                                  width: 34,
-                                  height: 34,
-                                  decoration: const BoxDecoration(
-                                    color: pink,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.add,
-                                    color: Colors.white,
-                                    size: 22,
                                   ),
                                 ),
-                              ),
-                            ],
+                                Positioned(
+                                  right: -5,
+                                  bottom: 4,
+                                  child: Container(
+                                    width: 34,
+                                    height: 34,
+                                    decoration: const BoxDecoration(
+                                      color: pink,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                      size: 22,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 16),
+                          Obx(
+                            () => Row(
+                              children: List.generate(4, (index) {
+                                final path = index < controller.galleryPaths.length
+                                    ? controller.galleryPaths[index]
+                                    : '';
+                                return Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      right: index == 3 ? 0 : 10,
+                                    ),
+                                    child: AspectRatio(
+                                      aspectRatio: 1,
+                                      child: GestureDetector(
+                                        onTap: () => controller.pickGallery(index),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFF4E8EA),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          clipBehavior: Clip.antiAlias,
+                                          child: path.isEmpty
+                                              ? null
+                                              : Image.file(
+                                                  File(path),
+                                                  fit: BoxFit.cover,
+                                                ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
 

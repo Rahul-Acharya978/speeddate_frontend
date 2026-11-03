@@ -152,7 +152,9 @@ class OtpscreenController extends GetxController {
           jsonDecode(response.body) as Map<String, dynamic>;
 
       if (response.statusCode == 200 && data['code'] == 200) {
-        userId = data['userId']?.toString() ?? '';
+        final responseUser = data['data'];
+        userId = data['userId']?.toString() ??
+            (responseUser is Map ? responseUser['_id']?.toString() ?? '' : '');
         token = data['token']?.toString() ?? '';
         isNew = data['isNew'] == true;
         verificationStatus = data['status']?.toString() ?? '';
@@ -161,6 +163,7 @@ class OtpscreenController extends GetxController {
 
         await prefs.setString('userId', userId);
         await prefs.setString('token', token);
+        await prefs.setString('tokenData', token);
         await prefs.setBool('isNew', isNew);
         await prefs.setBool('isProfileComplete', !isNew);
         await prefs.setString('verificationStatus', verificationStatus);

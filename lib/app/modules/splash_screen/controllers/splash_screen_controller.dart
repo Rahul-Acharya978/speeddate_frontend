@@ -5,8 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sundaymixer/app/modules/bottom/views/bottom_view.dart';
 import 'package:sundaymixer/app/modules/login/views/login_view.dart';
 
-import '../../profile/views/profile_view.dart';
-
 class SplashScreenController extends GetxController {
   //TODO: Implement SplashScreenController
 
@@ -21,21 +19,12 @@ class SplashScreenController extends GetxController {
   Future<void> checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
 
-    final String userId = prefs.getString('userId') ?? '';
-    final String token = prefs.getString('token') ?? '';
-    final bool isProfileComplete =
-        prefs.getBool('isProfileComplete') ?? false;
+    final String token =
+        prefs.getString('token') ?? prefs.getString('tokenData') ?? '';
 
-    if (userId.isNotEmpty && token.isNotEmpty) {
-      if (isProfileComplete) {
-        // Login and profile already completed.
-        Get.offAll(() => BottomView());
-      } else {
-        // Login completed, profile still pending.
-        Get.offAll(() => ProfileView());
-      }
+    if (token.isNotEmpty) {
+      Get.offAll(() => BottomView());
     } else {
-      // No saved login session.
       Get.offAll(() => LoginView());
     }
   }

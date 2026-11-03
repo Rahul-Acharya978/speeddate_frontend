@@ -21,6 +21,7 @@ class ProfileController extends GetxController {
   final RxString gender = ''.obs;
   final RxString city = ''.obs;
   final RxString imagePath = ''.obs;
+  final RxList<String> galleryPaths = <String>[].obs;
   final RxString selfiePath = ''.obs;
   final RxBool isLoading = false.obs;
   DateTime? selectedDob;
@@ -87,6 +88,28 @@ class ProfileController extends GetxController {
 
     if (image != null) {
       imagePath.value = image.path;
+    }
+  }
+
+  Future<void> pickGallery(int index) async {
+    final picker = ImagePicker();
+
+    final image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+      maxWidth: 1200,
+    );
+
+    if (image == null) return;
+
+    if (index < galleryPaths.length) {
+      galleryPaths[index] = image.path;
+      galleryPaths.refresh();
+      return;
+    }
+
+    if (galleryPaths.length < 4) {
+      galleryPaths.add(image.path);
     }
   }
 
@@ -294,6 +317,11 @@ class ProfileController extends GetxController {
       return;
     }
 
+    if (galleryPaths.isEmpty) {
+      _error('Please add at least one gallery photo.');
+      return;
+    }
+
     if (isLoading.value) return;
 
     try {
@@ -352,6 +380,21 @@ class ProfileController extends GetxController {
       );
 
       request.files.add(profileMultipartFile);
+
+      for (final path in galleryPaths) {
+        final galleryFile = File(path);
+        if (!await galleryFile.exists() || await galleryFile.length() == 0) {
+          _error('A gallery photo is missing. Please select it again.');
+          return;
+        }
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'gallery',
+            galleryFile.path,
+            filename: galleryFile.uri.pathSegments.last,
+          ),
+        );
+      }
 
       // Optional selfie
       if (selfiePath.value.isNotEmpty) {
