@@ -79,8 +79,13 @@ class HomeView extends GetView<HomeController> {
               children: [
                 _buildAppBar(context, pagePadding),
                 Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
+                  child: RefreshIndicator(
+                    color: pink,
+                    onRefresh: controller.refreshHome,
+                    child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
                     padding: EdgeInsets.only(
                       bottom: 18,
                       left: pagePadding,
@@ -149,6 +154,7 @@ class HomeView extends GetView<HomeController> {
                           );
                         }),
                       ],
+                    ),
                     ),
                   ),
                 ),

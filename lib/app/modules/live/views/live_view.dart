@@ -39,21 +39,7 @@ class LiveView extends GetView<LiveController> {
                       fit: VideoViewFit.cover,
                     );
                   }
-                  return Image.network(
-                    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=900&q=90',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: const Color(0xFF46352C),
-                      child: const Center(
-                        child: Icon(
-                          Icons.person,
-                          size: 100,
-                          color: Colors.white54,
-                        ),
-                      ),
-                    ),
-                  );
+                  return _cameraOffPlaceholder(avatar: 148);
                 }),
 
                 // Dark overlay for text visibility
@@ -162,20 +148,7 @@ class LiveView extends GetView<LiveController> {
                                           fit: VideoViewFit.cover,
                                         );
                                       }
-                                      return Image.network(
-                                        'https://images.unsplash.com/photo-1534528741775-53994a69daeb'
-                                        '?auto=format&fit=crop&w=350&q=85',
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) =>
-                                            Container(
-                                          color: const Color(0xFF765D4A),
-                                          child: const Icon(
-                                            Icons.person,
-                                            size: 50,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      );
+                                      return _cameraOffPlaceholder(avatar: 52);
                                     }),
                                     Positioned(
                                       top: 8,
@@ -382,6 +355,28 @@ class LiveView extends GetView<LiveController> {
           // Bottom navigation
         ],
       ),
+      ),
+    );
+  }
+
+  Widget _cameraOffPlaceholder({required double avatar}) {
+    return Container(
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF5C4A55), Color(0xFF2C2430)],
+        ),
+      ),
+      child: Container(
+        width: avatar,
+        height: avatar,
+        decoration: const BoxDecoration(
+          color: Color(0x33FFFFFF),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(Icons.person, color: Colors.white, size: avatar * 0.62),
       ),
     );
   }

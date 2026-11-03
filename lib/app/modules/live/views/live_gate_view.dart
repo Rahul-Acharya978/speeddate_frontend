@@ -22,24 +22,46 @@ class LiveGateView extends GetView<LiveGateController> {
           ),
         ),
         child: SafeArea(
-          child: Obx(() {
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return RefreshIndicator(
+                color: Colors.white,
+                onRefresh: controller.refresh,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                    child: Obx(() {
             final phase = controller.phase.value;
-            if (phase == 'countdown' || phase == 'opening') return _countdown();
-            if (phase == 'checking') return _center('Looking for your live event...');
-            if (phase == 'error') {
-              return _center(controller.message.value, action: 'Try again');
-            }
-            if (phase == 'ready') {
-              return _center(
+            final Widget body;
+            if (phase == 'countdown' || phase == 'opening') {
+              body = _countdown();
+            } else if (phase == 'checking') {
+              body = _center('Looking for your live event...');
+            } else if (phase == 'error') {
+              body = _center(controller.message.value, action: 'Try again');
+            } else if (phase == 'ready') {
+              body = _center(
                 'You are set for ${controller.eventName.value}. Tap Live again to rejoin.',
                 action: 'Rejoin',
               );
+            } else {
+              body = _center(
+                'You do not have a live booked event right now.',
+                action: 'Check again',
+              );
             }
-            return _center(
-              'You do not have a live booked event right now.',
-              action: 'Check again',
+            return SizedBox(
+              height: constraints.maxHeight,
+              width: double.infinity,
+              child: body,
             );
-          }),
+                    }),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

@@ -18,7 +18,7 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
   Widget build(BuildContext context) {
     final bookingController = Get.put(FreeeventbookingController());
     final args = Get.arguments;
-    if (args is HomeEvent) bookingController.event = args;
+    if (args is HomeEvent) bookingController.useEvent(args);
     return Scaffold(
       backgroundColor: bg,
       body: SafeArea(
@@ -26,10 +26,17 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
           children: [
             _header(),
             Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+              child: RefreshIndicator(
+                color: pink,
+                onRefresh: bookingController.refreshDetails,
+                child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                child: Column(
+                child: Obx(() {
+                  bookingController.shown.value;
+                  return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _eventBanner(),
@@ -48,6 +55,8 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
                       controller.continueToBook();
                     }),
                   ],
+                  );
+                }),
                 ),
               ),
             ),

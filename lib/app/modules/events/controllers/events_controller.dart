@@ -111,9 +111,9 @@ class EventsController extends GetxController {
     }
   }
 
-  Future<void> fetchEvents() async {
+  Future<void> fetchEvents({bool showLoader = true}) async {
     try {
-      isLoading.value = true;
+      if (showLoader) isLoading.value = true;
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('tokenData') ?? prefs.getString('token') ?? '';
       if (token.isEmpty) return;

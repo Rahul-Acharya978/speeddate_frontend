@@ -16,6 +16,13 @@ class LiveGateController extends GetxController {
   Timer? _timer;
   int _run = 0;
 
+  Future<void> refresh() async {
+    _run++;
+    _timer?.cancel();
+    phase.value = 'idle';
+    await begin();
+  }
+
   Future<void> begin() async {
     if (phase.value == 'checking' || phase.value == 'countdown' || phase.value == 'opening') {
       return;

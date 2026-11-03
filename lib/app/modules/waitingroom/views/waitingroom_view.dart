@@ -30,8 +30,13 @@ class WaitingroomView extends GetView<WaitingroomController> {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
+                  return RefreshIndicator(
+                    color: pink,
+                    onRefresh: waiting.refreshStatus,
+                    child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
+                    ),
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 18),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
@@ -65,6 +70,7 @@ class WaitingroomView extends GetView<WaitingroomController> {
                           _exitButton(),
                         ],
                       ),
+                    ),
                     ),
                   );
                 },
@@ -197,22 +203,46 @@ class WaitingroomView extends GetView<WaitingroomController> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          CustomPaint(
-            size: const Size(202, 202),
-            painter: _CountdownRingPainter(),
-          ),
+          Obx(() {
+            final total = controller.roundSeconds.value <= 0
+                ? 1
+                : controller.roundSeconds.value;
+            final progress = controller.hasWait.value
+                ? (controller.remainingSeconds.value / total).clamp(0.0, 1.0)
+                : 0.0;
+            return CustomPaint(
+              size: const Size(202, 202),
+              painter: _CountdownRingPainter(progress),
+            );
+          }),
           Container(
             width: 172,
             height: 172,
+            alignment: Alignment.center,
             decoration: const BoxDecoration(
               color: Color(0xFFFCE8F2),
               shape: BoxShape.circle,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Obx(
-                  () => Text(
+            child: Obx(() {
+              if (!controller.hasWait.value) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    'Please wait for new participants to join so you can be connected.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 13,
+                      height: 1.35,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                );
+              }
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
                     controller.formattedTime,
                     style: const TextStyle(
                       color: textColor,
@@ -222,10 +252,8 @@ class WaitingroomView extends GetView<WaitingroomController> {
                       letterSpacing: -1.2,
                     ),
                   ),
-                ),
-                const SizedBox(height: 3),
-                Obx(
-                  () => Text(
+                  const SizedBox(height: 3),
+                  Text(
                     'Expected time left\nof ${controller.roundLabel} pool',
                     textAlign: TextAlign.center,
                     style: const TextStyle(
@@ -235,9 +263,9 @@ class WaitingroomView extends GetView<WaitingroomController> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-              ],
-            ),
+                ],
+              );
+            }),
           ),
         ],
       ),
@@ -695,6 +723,10 @@ class _NavItem {
 
 // Circular pink-purple progress ring
 class _CountdownRingPainter extends CustomPainter {
+  const _CountdownRingPainter(this.progress);
+
+  final double progress;
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
@@ -710,6 +742,8 @@ class _CountdownRingPainter extends CustomPainter {
 
     canvas.drawCircle(center, radius, backgroundPaint);
 
+    if (progress <= 0) return;
+
     final progressPaint = Paint()
       ..shader = const SweepGradient(
         colors: [Color(0xFFFF477E), Color(0xFFCB4CB6), Color(0xFF8749F5)],
@@ -721,9 +755,17 @@ class _CountdownRingPainter extends CustomPainter {
       ..strokeWidth = 9
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawArc(rect, -math.pi / 2, math.pi * 1.55, false, progressPaint);
+    canvas.drawArc(
+      rect,
+      -math.pi / 2,
+      math.pi * 2 * progress,
+      false,
+      progressPaint,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _CountdownRingPainter oldDelegate) {
+    return oldDelegate.progress != progress;
+  }
 }

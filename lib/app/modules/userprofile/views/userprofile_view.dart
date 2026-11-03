@@ -59,7 +59,11 @@ class UserprofileView extends GetView<UserprofileController> {
           builder: (context, constraints) {
             final horizontalPadding = constraints.maxWidth < 360 ? 14.0 : 20.0;
 
-            return ListView(
+            return RefreshIndicator(
+              color: profilePink,
+              onRefresh: controller.loadProfile,
+              child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.fromLTRB(
                 horizontalPadding,
                 10,
@@ -95,6 +99,7 @@ class UserprofileView extends GetView<UserprofileController> {
                 _settingsCard(),
                 const SizedBox(height: 70),
               ],
+              ),
             );
           },
         ),

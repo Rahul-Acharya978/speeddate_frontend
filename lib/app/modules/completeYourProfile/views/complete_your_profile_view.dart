@@ -54,7 +54,11 @@ class CompleteYourProfileView extends GetView<CompleteYourProfileController> {
       ),
       body: SafeArea(
         top: false,
-        child: SingleChildScrollView(
+        child: RefreshIndicator(
+          color: pink,
+          onRefresh: controller.refreshPage,
+          child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(22, 25, 22, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -525,6 +529,7 @@ class CompleteYourProfileView extends GetView<CompleteYourProfileController> {
                 ),
               ),
             ],
+          ),
           ),
         ),
       ),

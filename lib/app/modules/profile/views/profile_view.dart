@@ -57,7 +57,11 @@ class ProfileView extends GetView<ProfileController> {
         child: Column(
           children: [
             Expanded(
-              child: SingleChildScrollView(
+              child: RefreshIndicator(
+                color: pink,
+                onRefresh: controller.getCities,
+                child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(19, 18, 19, 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -501,6 +505,7 @@ class ProfileView extends GetView<ProfileController> {
                       ),
                     ),
                   ],
+                ),
                 ),
               ),
             ),

@@ -702,6 +702,14 @@ class CompleteYourProfileController extends GetxController {
     // Connect your existing GetX routes here.
   }
 
+  Future<void> refreshPage() async {
+    await Future.wait([
+      fetchMyProfile(),
+      fetchCities(),
+    ]);
+    professionPagingController.refresh();
+  }
+
   @override
   void onInit() {
     super.onInit();

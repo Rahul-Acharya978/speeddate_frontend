@@ -127,9 +127,16 @@ class HomeController extends GetxController {
     return 'STARTS IN ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  Future<void> fetchHomeEvents() async {
+  Future<void> refreshHome() {
+    return Future.wait([
+      fetchMyProfile(showLoader: false),
+      fetchHomeEvents(showLoader: false),
+    ]);
+  }
+
+  Future<void> fetchHomeEvents({bool showLoader = true}) async {
     try {
-      isEventsLoading.value = true;
+      if (showLoader) isEventsLoading.value = true;
       final prefs = await SharedPreferences.getInstance();
       final token =
           prefs.getString('tokenData') ?? prefs.getString('token') ?? '';
@@ -173,9 +180,9 @@ class HomeController extends GetxController {
   }
 
   // Fetch My Profile API
-  Future<void> fetchMyProfile() async {
+  Future<void> fetchMyProfile({bool showLoader = true}) async {
     try {
-      isLoading.value = true;
+      if (showLoader) isLoading.value = true;
       errorMessage.value = '';
 
       final prefs = await SharedPreferences.getInstance();

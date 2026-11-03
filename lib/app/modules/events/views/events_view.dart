@@ -62,16 +62,20 @@ class EventsView extends GetView<EventsController> {
       ),
       body: SafeArea(
         top: false,
-        child: Obx(() {
+        child: Column(
+          children: [
+            _tabs(),
+            Expanded(
+              child: RefreshIndicator(
+                color: _pink,
+                onRefresh: () => controller.fetchEvents(showLoader: false),
+                child: Obx(() {
           final upcoming = controller.selectedTab.value == 1;
           final events = upcoming
               ? controller.filteredUpcomingEvents
               : controller.filteredLiveEvents;
-          return Column(
-            children: [
-              _tabs(),
-              Expanded(
-                child: ListView(
+          return ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
                   children: [
                     Row(
@@ -136,11 +140,12 @@ class EventsView extends GetView<EventsController> {
                         ),
                       ),
                   ],
-                ),
+                  );
+                }),
               ),
-            ],
-          );
-        }),
+            ),
+          ],
+        ),
       ),
       // Remove this bottomNavigationBar if your parent BottomView already provides it.
     );

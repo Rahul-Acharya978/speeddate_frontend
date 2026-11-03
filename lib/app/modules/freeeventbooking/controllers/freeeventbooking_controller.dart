@@ -17,7 +17,65 @@ class FreeeventbookingController extends GetxController {
   final count = 0.obs;
   final RxBool isBooking = false.obs;
   final RxBool isBooked = false.obs;
-  HomeEvent? event;
+  final shown = Rxn<HomeEvent>();
+
+  HomeEvent? get event => shown.value;
+
+  void useEvent(HomeEvent incoming) {
+    final current = shown.value;
+    if (current == null || current.id != incoming.id) {
+      shown.value = incoming;
+    }
+  }
+
+  Future<void> refreshDetails() async {
+    final id = event?.id ?? '';
+    if (id.isEmpty) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('tokenData') ?? prefs.getString('token') ?? '';
+      if (token.isEmpty) return;
+      final response = await http.get(
+        Uri.parse(ApiConfig.url('/home/events')),
+        headers: {
+          'Authorization': token.startsWith('Bearer ') ? token : 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+      if (response.statusCode != 200) return;
+      final body = jsonDecode(response.body);
+      final data = body is Map ? body['data'] : null;
+      if (data is! Map) return;
+      for (final key in [
+        'bookedEvent',
+        'liveEvents',
+        'upcomingEvents',
+        'yourUpcomingEvents',
+        'browseLive',
+        'browseUpcoming',
+      ]) {
+        final fresh = _findEvent(data[key], id);
+        if (fresh != null) {
+          shown.value = fresh;
+          return;
+        }
+      }
+    } catch (_) {}
+  }
+
+  HomeEvent? _findEvent(dynamic raw, String id) {
+    if (raw is Map) {
+      final event = HomeEvent.fromJson(Map<String, dynamic>.from(raw));
+      return event.id == id ? event : null;
+    }
+    if (raw is List) {
+      for (final item in raw) {
+        final found = _findEvent(item, id);
+        if (found != null) return found;
+      }
+    }
+    return null;
+  }
 
   String get title => event?.title ?? 'Creatives & Introverts';
   String get subtitle => event?.subtitle.isNotEmpty == true
