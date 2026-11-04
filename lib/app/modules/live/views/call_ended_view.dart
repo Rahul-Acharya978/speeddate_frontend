@@ -43,8 +43,8 @@ class _CallEndedState extends State<CallEndedView> {
 
   String _clock(int value) {
     final total = value < 0 ? 0 : value;
-    final minutes = (total ~/ 60).toString().padStart(2, '0');
-    final seconds = (total % 60).toString().padStart(2, '0');
+    final minutes = (total ~/ 60).toString().padLeft(2, '0');
+    final seconds = (total % 60).toString().padLeft(2, '0');
     return '$minutes:$seconds';
   }
 
