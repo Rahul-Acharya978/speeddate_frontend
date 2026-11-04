@@ -623,7 +623,7 @@ class LikesaveeventView extends GetView<LikesaveeventController> {
       (Icons.calendar_today_outlined, 'Events'),
       (Icons.bolt, 'Live'),
       (Icons.chat_bubble_outline, 'Chat'),
-      (Icons.account_circle_outlined, 'Profile'),
+      (Icons.account_circle_outlined, 'Saved Profile'),
     ];
 
     return Container(

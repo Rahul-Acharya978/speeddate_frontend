@@ -7,7 +7,7 @@ import '../../home/views/home_view.dart';
 import '../../events/views/events_view.dart';
 import '../../live/views/live_gate_view.dart';
 import '../../chat/views/chat_view.dart';
-import '../../userprofile/views/userprofile_view.dart';
+import '../../savedconnection/views/savedconnection_view.dart';
 
 class BottomView extends GetView<BottomController> {
   const BottomView({super.key});
@@ -32,7 +32,7 @@ class BottomView extends GetView<BottomController> {
             EventsView(),
             LiveGateView(),
             ChatscreenView(),
-            UserprofileView(),
+            SavedconnectionView(embedded: true),
           ],
         ),
       ),
@@ -65,7 +65,7 @@ class BottomView extends GetView<BottomController> {
               _navItem(Icons.calendar_today_outlined, 'Events', 1),
               _navItem(Icons.bolt, 'Live', 2),
               _navItem(Icons.chat_bubble_outline, 'Chat', 3),
-              _navItem(Icons.account_circle_outlined, 'Profile', 4),
+              _navItem(Icons.account_circle_outlined, 'Saved Profile', 4),
             ],
           ),
         ),
@@ -98,12 +98,16 @@ class BottomView extends GetView<BottomController> {
                 ),
 
                 Positioned(
-                  top: 43,
+                  top: 40,
+                  left: 2,
+                  right: 2,
                   child: Text(
                     title,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
                     style: TextStyle(
-                      fontSize: 11,
-                      height: 1,
+                      fontSize: 10,
+                      height: 1.15,
                       fontWeight: isSelected
                           ? FontWeight.w600
                           : FontWeight.w500,

@@ -107,14 +107,22 @@ class HomeView extends GetView<HomeController> {
                             );
                           }
                           final booked = controller.bookedEvent.value;
+                          final liveHero = booked != null && booked.isLive ? booked : null;
                           final live = controller.liveEvents;
-                          final upcoming = controller.upcomingEvents;
-                          final yours = controller.yourUpcomingEvents;
+                          final upcoming = controller.upcomingEvents
+                              .where((event) => !event.isLive)
+                              .toList();
+                          final yours = <HomeEvent>[
+                            if (booked != null && !booked.isLive) booked,
+                            ...controller.yourUpcomingEvents.where(
+                              (event) => event.id != booked?.id,
+                            ),
+                          ];
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (booked != null) ...[
-                                _buildLiveEvent(context, booked),
+                              if (liveHero != null) ...[
+                                _buildLiveEvent(context, liveHero),
                                 const SizedBox(height: 28),
                               ],
                               if (live.isNotEmpty) ...[
@@ -147,7 +155,12 @@ class HomeView extends GetView<HomeController> {
                                   () => _showMessage('Your registered events'),
                                 ),
                                 const SizedBox(height: 12),
-                                _buildUpcomingEvents(context, isWide, yours),
+                                _buildUpcomingEvents(
+                                  context,
+                                  isWide,
+                                  yours,
+                                  bookedSection: true,
+                                ),
                               ],
                               const SizedBox(height: 24),
                             ],
@@ -1028,8 +1041,9 @@ class HomeView extends GetView<HomeController> {
   Widget _buildUpcomingEvents(
     BuildContext context,
     bool isWide,
-    List<HomeEvent> events,
-  ) {
+    List<HomeEvent> events, {
+    bool bookedSection = false,
+  }) {
     final width = MediaQuery.sizeOf(context).width;
     final cardWidth = isWide ? 300.0 : (width * 0.64).clamp(245.0, 310.0);
     if (events.isEmpty) return _emptyEvents('No events yet');
@@ -1053,6 +1067,7 @@ class HomeView extends GetView<HomeController> {
               joined: event.joinedLabel,
               price: event.priceLabel,
               available: true,
+              booked: bookedSection || event.booked,
               onTap: () => _openEventBooking(event),
             ),
           );
@@ -1084,6 +1099,7 @@ class HomeView extends GetView<HomeController> {
     required String joined,
     required String price,
     required bool available,
+    bool booked = false,
     required VoidCallback onTap,
   }) {
     return Card(
@@ -1217,26 +1233,36 @@ class HomeView extends GetView<HomeController> {
                         ),
                       ),
                       const Spacer(),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: onTap,
-                          customBorder: const CircleBorder(),
-                          child: Container(
-                            width: 29,
-                            height: 29,
-                            decoration: const BoxDecoration(
-                              gradient: appGradient,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 17,
-                              color: Colors.white,
+                      if (booked)
+                        const Text(
+                          'Already Booked',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF07865D),
+                          ),
+                        )
+                      else
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: onTap,
+                            customBorder: const CircleBorder(),
+                            child: Container(
+                              width: 29,
+                              height: 29,
+                              decoration: const BoxDecoration(
+                                gradient: appGradient,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 17,
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ],
@@ -1253,6 +1279,7 @@ class HomeView extends GetView<HomeController> {
   }
 
   void _openEventBooking(HomeEvent event) {
+    if (event.booked) return;
     Get.to(() => const FreeeventbookingView(), arguments: event);
   }
 }

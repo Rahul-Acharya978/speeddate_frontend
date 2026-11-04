@@ -19,7 +19,7 @@ class WaitingroomController extends GetxController {
   final RxString refundMessage = ''.obs;
   final RxString eventName = ''.obs;
   final RxInt averageWaitSeconds = (-1).obs;
-  final RxInt roundSeconds = 210.obs;
+  final RxInt roundSeconds = 213.obs;
 
   Timer? _timer;
   Timer? _poll;

@@ -132,10 +132,21 @@ class EventsController extends GetxController {
       final data = body['data'] is Map ? body['data'] as Map : {};
 
       final live = _readEvents(data['browseLive'] ?? data['liveEvents'], live: true);
+      final liveIds = live
+          .map((item) => (item['event'] as HomeEvent).id)
+          .where((id) => id.isNotEmpty)
+          .toSet();
+      final now = DateTime.now();
       final upcoming = _readEvents(
         data['browseUpcoming'] ?? data['upcomingEvents'],
         live: false,
-      );
+      ).where((item) {
+        final event = item['event'] as HomeEvent;
+        if (event.isLive || liveIds.contains(event.id)) return false;
+        final start = event.startsAt;
+        if (start != null && !start.isAfter(now)) return false;
+        return true;
+      }).toList();
       liveEvents.assignAll(live);
       upcomingEvents.assignAll(upcoming);
 
@@ -176,6 +187,7 @@ class EventsController extends GetxController {
         'tag': event.isFree ? 'Free entry' : 'Upcoming',
         'image': _images[entry.key % _images.length],
         'startsAt': event.startsAt,
+        'booked': event.booked,
       };
     }).toList();
   }

@@ -51,9 +51,15 @@ class FreeeventbookingView extends GetView<FreeeventbookingController> {
                     const SizedBox(height: 16),
                     _pricingCard(),
                     const SizedBox(height: 16),
-                    _button2('Book Free Events', () {
-                      controller.continueToBook();
-                    }),
+                    _button2(
+                      bookingController.event?.booked == true
+                          ? 'Already Booked'
+                          : 'Book Free Events',
+                      () {
+                        if (bookingController.event?.booked == true) return;
+                        controller.continueToBook();
+                      },
+                    ),
                   ],
                   );
                 }),

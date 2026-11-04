@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 
 import '../../events/controllers/events_controller.dart';
 import '../../live/controllers/live_gate_controller.dart';
-import '../../userprofile/controllers/userprofile_controller.dart';
+import '../../savedconnection/controllers/savedconnection_controller.dart';
 
 class BottomController extends GetxController {
   //TODO: Implement BottomController
@@ -18,8 +18,8 @@ class BottomController extends GetxController {
     if (index == 2 && Get.isRegistered<LiveGateController>()) {
       Get.find<LiveGateController>().begin();
     }
-    if (index == 4 && Get.isRegistered<UserprofileController>()) {
-      Get.find<UserprofileController>().loadProfile();
+    if (index == 4 && Get.isRegistered<SavedconnectionController>()) {
+      Get.find<SavedconnectionController>().loadSaves();
     }
   }
 

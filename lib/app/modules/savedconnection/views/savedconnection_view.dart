@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../userprofile/views/userprofile_view.dart';
 import '../controllers/savedconnection_controller.dart';
 
 class SavedconnectionView extends GetView<SavedconnectionController> {
-  const SavedconnectionView({super.key});
+  const SavedconnectionView({super.key, this.embedded = false});
+
+  final bool embedded;
 
   static const Color primaryPink = Color(0xFFE81759);
   static const Color purple = Color(0xFF9C27D5);
@@ -61,6 +64,16 @@ class SavedconnectionView extends GetView<SavedconnectionController> {
                       ),
                     ] else
                       const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                    if (controller.currentList.isEmpty)
+                      const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Text(
+                            'No profiles here yet',
+                            style: TextStyle(color: secondaryText, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
                     SliverPadding(
                       padding: const EdgeInsets.fromLTRB(18, 0, 18, 20),
                       sliver: SliverList(
@@ -93,14 +106,16 @@ class SavedconnectionView extends GetView<SavedconnectionController> {
       padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
       child: Row(
         children: [
-          IconButton(
-            onPressed: Get.back,
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              size: 23,
-              color: textColor,
-            ),
-          ),
+          embedded
+              ? const SizedBox(width: 48)
+              : IconButton(
+                  onPressed: Get.back,
+                  icon: const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 23,
+                    color: textColor,
+                  ),
+                ),
           const Expanded(
             child: Text(
               'Saved Connections',
@@ -119,7 +134,9 @@ class SavedconnectionView extends GetView<SavedconnectionController> {
             },
             icon: const Icon(Icons.tune_rounded, color: textColor, size: 22),
           ),
-          Container(
+          GestureDetector(
+            onTap: () => Get.to(() => const UserprofileView()),
+            child: Container(
             width: 36,
             height: 36,
             decoration: const BoxDecoration(
@@ -134,6 +151,7 @@ class SavedconnectionView extends GetView<SavedconnectionController> {
               ],
             ),
             child: const Icon(Icons.person, color: Colors.white, size: 21),
+          ),
           ),
         ],
       ),
@@ -153,7 +171,7 @@ class SavedconnectionView extends GetView<SavedconnectionController> {
           children: [
             _tabItem(
               title: 'They Liked You',
-              count: 5,
+              count: controller.theyLikedYou.length,
               index: 0,
               selected: selected,
               icon: Icons.auto_awesome,
@@ -161,14 +179,14 @@ class SavedconnectionView extends GetView<SavedconnectionController> {
             const SizedBox(width: 9),
             _tabItem(
               title: 'You Liked',
-              count: 8,
+              count: controller.youLiked.length,
               index: 1,
               selected: selected,
             ),
             const SizedBox(width: 9),
             _tabItem(
               title: 'Mutual',
-              count: 3,
+              count: controller.mutualLikes.length,
               index: 2,
               selected: selected,
               icon: Icons.circle,
@@ -286,7 +304,9 @@ class SavedconnectionView extends GetView<SavedconnectionController> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '${person['name']}, ${person['age']}',
+                        person['age'] is num && (person['age'] as num) > 0
+                            ? '${person['name']}, ${person['age']}'
+                            : '${person['name']}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(

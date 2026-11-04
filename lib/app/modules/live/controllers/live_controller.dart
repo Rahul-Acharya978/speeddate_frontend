@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:sundaymixer/app/data/speed_date_api.dart';
 import 'package:sundaymixer/app/modules/waitingroom/views/waitingroom_view.dart';
+import 'package:sundaymixer/app/modules/live/views/call_ended_view.dart';
 
 class LiveController extends GetxController {
   //TODO: Implement LiveController
@@ -30,8 +31,13 @@ class LiveController extends GetxController {
   EventsListener<RoomEvent>? _roomListener;
   String? _activeEventId;
   String? _connectedRoom;
+  String _partnerId = '';
+  String _partnerName = '';
+  String _partnerPhoto = '';
+  int _partnerAge = 0;
   int _joinGeneration = 0;
-  int roundLimit = 210;
+  int roundLimit = 213;
+  int introLimit = 33;
   bool _redirecting = false;
   bool _syncing = false;
 
@@ -101,7 +107,9 @@ class LiveController extends GetxController {
         status = await SpeedDateApi.join(eventId);
       }
       roundLimit = status.roundSeconds;
+      if (status.introSeconds > 0) introLimit = status.introSeconds;
       if (status.phase == 'incall' && status.token.isNotEmpty) {
+        _rememberPartner(status);
         seconds.value = status.elapsedSeconds;
         if (_connectedRoom != status.room) {
           final connected = await _connectPair(status.url, status.token);
@@ -113,7 +121,7 @@ class LiveController extends GetxController {
         _redirecting = true;
         _poll?.cancel();
         await leaveRoom(keepEvent: true);
-        Get.off(() => WaitingroomView(eventId: eventId));
+        _openNext(eventId);
       }
     } catch (_) {
     } finally {
@@ -240,19 +248,12 @@ class LiveController extends GetxController {
                 return;
               }
               try {
-                final status = await SpeedDateApi.rotate(eventId);
-                if (status.phase == 'incall' && status.token.isNotEmpty) {
-                  roundLimit = status.roundSeconds;
-                  seconds.value = status.elapsedSeconds;
-                  final connected = await _connectPair(status.url, status.token);
-                  if (connected) _connectedRoom = status.room;
-                  return;
-                }
+                await SpeedDateApi.rotate(eventId);
               } catch (_) {}
               _redirecting = true;
               _poll?.cancel();
               await leaveRoom(keepEvent: true);
-              Get.off(() => WaitingroomView(eventId: eventId));
+              _openNext(eventId);
             },
             child: const Text(
               'End Call',
@@ -302,6 +303,33 @@ class LiveController extends GetxController {
     _poll?.cancel();
     leaveRoom();
     super.onClose();
+  }
+
+  void _rememberPartner(SpeedDateStatus status) {
+    if (status.partnerId.isEmpty) return;
+    _partnerId = status.partnerId;
+    _partnerName = status.partnerName;
+    _partnerPhoto = status.partnerPhoto;
+    _partnerAge = status.partnerAge;
+  }
+
+  void _openNext(String eventId) {
+    final talkedLongEnough = seconds.value >= introLimit || seconds.value >= roundLimit;
+    if (talkedLongEnough && _partnerId.isNotEmpty) {
+      final partnerId = _partnerId;
+      _partnerId = '';
+      Get.off(() => CallEndedView(
+            eventId: eventId,
+            partnerId: partnerId,
+            name: _partnerName.isEmpty ? 'Your match' : _partnerName,
+            photo: _partnerPhoto,
+            age: _partnerAge,
+            seconds: seconds.value,
+            roundSeconds: roundLimit,
+          ));
+      return;
+    }
+    Get.off(() => WaitingroomView(eventId: eventId));
   }
 
   void increment() => count.value++;

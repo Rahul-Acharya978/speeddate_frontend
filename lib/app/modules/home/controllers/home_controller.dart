@@ -22,6 +22,7 @@ class HomeEvent {
     required this.joinedLabel,
     required this.startsAt,
     required this.isLive,
+    required this.booked,
   });
 
   final String id;
@@ -38,6 +39,7 @@ class HomeEvent {
   final String joinedLabel;
   final DateTime? startsAt;
   final bool isLive;
+  final bool booked;
 
   factory HomeEvent.fromJson(Map<String, dynamic> json) {
     final rawStart = json['startsAt']?.toString();
@@ -58,6 +60,7 @@ class HomeEvent {
           ? null
           : DateTime.tryParse(rawStart)?.toLocal(),
       isLive: json['isLive'] == true,
+      booked: json['booked'] == true,
     );
   }
 }

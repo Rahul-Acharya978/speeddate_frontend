@@ -287,7 +287,10 @@ class EventsView extends GetView<EventsController> {
                   ],
                 ),
                 const SizedBox(height: 14),
-                _button2('View Event →', () => _openEvent(e)),
+                _button2(
+                  e['booked'] == true ? 'Already Booked' : 'View Event →',
+                  () => _openEvent(e),
+                ),
               ],
             ),
           ),
@@ -349,7 +352,11 @@ class EventsView extends GetView<EventsController> {
                         ),
                       ),
                     ),
-                    _button('View Event →', () => _openEvent(e), compact: true),
+                    _button(
+                      e['booked'] == true ? 'Already Booked' : 'View Event →',
+                      () => _openEvent(e),
+                      compact: true,
+                    ),
                   ],
                 ),
               ],
@@ -484,6 +491,7 @@ class EventsView extends GetView<EventsController> {
   );
 
   void _openEvent(Map<String, dynamic> event) {
+    if (event['booked'] == true) return;
     final item = event['event'];
     if (item is! HomeEvent) return;
     Get.to(() => const FreeeventbookingView(), arguments: item);

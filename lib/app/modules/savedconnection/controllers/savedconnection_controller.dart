@@ -1,181 +1,70 @@
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../data/api_config.dart';
+import '../../../data/speed_date_api.dart';
 import '../../connectionProfilDetail/views/connection_profil_detail_view.dart';
 
 class SavedconnectionController extends GetxController {
-  //TODO: Implement SavedconnectionController
-
   final count = 0.obs;
   final RxInt selectedTab = 0.obs;
   final RxInt bottomIndex = 4.obs;
+  final RxBool loading = false.obs;
 
-  final List<Map<String, dynamic>> theyLikedYou = [
-    {
-      'name': 'Priya Sharma',
-      'age': 27,
-      'city': 'Indore',
-      'message': 'Liked your profile recently',
-      'event': 'Met at Friday Speed',
-      'date': '23 Sep 2026',
-      'time': '8:00 PM',
-      'duration': '03:00 conversation',
-      'badge': 'Liked You',
-      'image': 'https://i.pravatar.cc/150?img=47',
-      'eventIcon': 'speed',
-    },
-    {
-      'name': 'Tanvi Joshi',
-      'age': 26,
-      'city': 'Bhopal',
-      'message': 'Sent you a super vibe',
-      'event': 'Met at Bhopal Singles Mixer',
-      'date': '24 Sep 2026',
-      'time': '7:30 PM',
-      'duration': '03:00 conversation',
-      'badge': 'Liked You',
-      'image': 'https://i.pravatar.cc/150?img=44',
-      'eventIcon': 'speed',
-    },
-    {
-      'name': 'Sneha Kapoor',
-      'age': 25,
-      'city': 'Bengaluru',
-      'message': 'Matched 92% dating vibe',
-      'event': 'Met at Friday Speed',
-      'date': '23 Sep 2026',
-      'time': '8:15 PM',
-      'duration': '03:00 conversation',
-      'badge': 'Liked You',
-      'image': 'https://i.pravatar.cc/150?img=49',
-      'eventIcon': 'speed',
-    },
-    {
-      'name': 'Riya Sharma',
-      'age': 26,
-      'city': 'Mumbai',
-      'message': 'Liked your profile',
-      'event': 'Met at Sunday Rooftop',
-      'date': '21 Sep 2026',
-      'time': '7:00 PM',
-      'duration': '03:00 conversation',
-      'badge': 'Liked You',
-      'image': 'https://i.pravatar.cc/150?img=45',
-      'eventIcon': 'coffee',
-    },
-    {
-      'name': 'Ananya Sen',
-      'age': 26,
-      'city': 'Bhopal',
-      'message': 'You caught her attention',
-      'event': 'Met at Creatives & Introverts',
-      'date': '22 Sep 2026',
-      'time': '8:45 PM',
-      'duration': '03:00 conversation',
-      'badge': 'Liked You',
-      'image': 'https://i.pravatar.cc/150?img=46',
-      'eventIcon': 'coffee',
-    },
-  ];
-
-  final List<Map<String, dynamic>> youLiked = [
-    {
-      'name': 'Ananya Sen',
-      'age': 26,
-      'city': 'Mumbai',
-      'message': 'You saved Ananya. Waiting for her to save you.',
-      'event': 'Met at Sunday Rooftop',
-      'date': '21 Sep 2026',
-      'time': '7:30 PM',
-      'duration': '03:00 conversation',
-      'image': 'https://i.pravatar.cc/150?img=46',
-      'eventIcon': 'sun',
-    },
-    {
-      'name': 'Meera Rajput',
-      'age': 27,
-      'city': 'Indore',
-      'message': 'You saved Meera. Waiting for her to save you.',
-      'event': 'Met at Friday Speed',
-      'date': '23 Sep 2026',
-      'time': '8:30 PM',
-      'duration': '03:00 conversation',
-      'image': 'https://i.pravatar.cc/150?img=48',
-      'eventIcon': 'speed',
-    },
-    {
-      'name': 'Kriti Sanon',
-      'age': 25,
-      'city': 'Delhi',
-      'message': 'You saved Kriti. Waiting for her response.',
-      'event': 'Met at Coffee & Connections',
-      'date': '20 Sep 2026',
-      'time': '6:00 PM',
-      'duration': '03:00 conversation',
-      'image': 'https://i.pravatar.cc/150?img=43',
-      'eventIcon': 'coffee',
-    },
-  ];
-
-  final List<Map<String, dynamic>> mutualLikes = [
-    {
-      'name': 'Riya Sharma',
-      'age': 27,
-      'city': 'Indore',
-      'message': 'You both saved each other',
-      'event': 'Met at Friday Speed',
-      'date': '23 Sep 2026',
-      'time': '8:00 PM',
-      'duration': '03:00 conversation',
-      'image': 'https://i.pravatar.cc/150?img=45',
-      'eventIcon': 'speed',
-    },
-    {
-      'name': 'Sneha Kapoor',
-      'age': 25,
-      'city': 'Bengaluru',
-      'message': 'You both saved each other',
-      'event': 'Met at Friday Speed',
-      'date': '23 Sep 2026',
-      'time': '8:15 PM',
-      'duration': '03:00 conversation',
-      'image': 'https://i.pravatar.cc/150?img=49',
-      'eventIcon': 'speed',
-    },
-    {
-      'name': 'Ananya S.',
-      'age': 26,
-      'city': 'Bhopal',
-      'message': 'You both saved each other',
-      'event': 'Met at Creatives & Introverts',
-      'date': '22 Sep 2026',
-      'time': '8:45 PM',
-      'duration': '03:00 conversation',
-      'image': 'https://i.pravatar.cc/150?img=46',
-      'eventIcon': 'coffee',
-    },
-  ];
+  final RxList<Map<String, dynamic>> theyLikedYou = <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> youLiked = <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> mutualLikes = <Map<String, dynamic>>[].obs;
 
   void changeTab(int index) {
     selectedTab.value = index;
   }
 
-  void changeBottomTab(int index) {
-    bottomIndex.value = index;
-
-    // Connect your actual app routes here.
-    // Example: Get.offNamed(Routes.HOME);
+  Future<void> loadSaves() async {
+    loading.value = true;
+    try {
+      final data = await SpeedDateApi.saves();
+      theyLikedYou.assignAll(_cards(data['theyLikedYou']));
+      youLiked.assignAll(_cards(data['youLiked']));
+      mutualLikes.assignAll(_cards(data['mutual']));
+    } catch (error) {
+      debugPrint('Saved profiles error: $error');
+    } finally {
+      loading.value = false;
+    }
   }
 
-  void likeBack(Map<String, dynamic> person) {
-    Get.snackbar(
-      'Liked!',
-      'You liked ${person['name']} back.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: const Color(0xFFFCE7F3),
-      colorText: const Color(0xFFBE185D),
-      margin: const EdgeInsets.all(16),
-    );
+  List<Map<String, dynamic>> _cards(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.whereType<Map>().map((item) {
+      final card = Map<String, dynamic>.from(item);
+      card['image'] = _photo(card['photo']?.toString() ?? '');
+      card['eventIcon'] = 'speed';
+      return card;
+    }).toList();
+  }
+
+  String _photo(String photo) {
+    if (photo.isEmpty) return '';
+    if (photo.startsWith('http')) return photo;
+    return ApiConfig.url(photo);
+  }
+
+  Future<void> likeBack(Map<String, dynamic> person) async {
+    final eventId = person['eventId']?.toString() ?? '';
+    final partnerId = person['partnerId']?.toString() ?? '';
+    if (eventId.isEmpty || partnerId.isEmpty) return;
+    try {
+      await SpeedDateApi.saveProfile(
+        eventId: eventId,
+        partnerId: partnerId,
+        save: true,
+        durationSeconds: 0,
+      );
+      await loadSaves();
+      selectedTab.value = 2;
+    } catch (error) {
+      Get.snackbar('Could not save', error.toString(), snackPosition: SnackPosition.BOTTOM);
+    }
   }
 
   void startChat(Map<String, dynamic> person) {
@@ -185,14 +74,10 @@ class SavedconnectionController extends GetxController {
       snackPosition: SnackPosition.BOTTOM,
       margin: const EdgeInsets.all(16),
     );
-
-    // Navigate to your ChatView here.
   }
 
   void viewProfile(Map<String, dynamic> person) {
-    Get.to(ConnectionProfilDetailView());
-
-    // Navigate to your profile details page here.
+    Get.to(() => const ConnectionProfilDetailView());
   }
 
   List<Map<String, dynamic>> get currentList {
@@ -209,17 +94,6 @@ class SavedconnectionController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    loadSaves();
   }
-
-  @override
-  void onReady() {
-    super.onReady();
-  }
-
-  @override
-  void onClose() {
-    super.onClose();
-  }
-
-  void increment() => count.value++;
 }

@@ -21,6 +21,12 @@ class SpeedDateStatus {
     required this.room,
     required this.url,
     required this.token,
+    this.partnerName = '',
+    this.partnerId = '',
+    this.partnerPhoto = '',
+    this.partnerAge = 0,
+    this.partnerCity = '',
+    this.introSeconds = 33,
   });
 
   final String phase;
@@ -37,6 +43,12 @@ class SpeedDateStatus {
   final String room;
   final String url;
   final String token;
+  final String partnerName;
+  final String partnerId;
+  final String partnerPhoto;
+  final int partnerAge;
+  final String partnerCity;
+  final int introSeconds;
 
   factory SpeedDateStatus.fromJson(Map<String, dynamic> json) {
     return SpeedDateStatus(
@@ -49,11 +61,17 @@ class SpeedDateStatus {
       matchTarget: _int(json['matchTarget'], fallback: 3),
       refundEligible: json['refundEligible'] == true,
       refundMessage: json['refundMessage']?.toString() ?? '',
-      roundSeconds: _int(json['roundSeconds'], fallback: 210),
+      roundSeconds: _int(json['roundSeconds'], fallback: 213),
       elapsedSeconds: _int(json['elapsedSeconds']),
       room: json['room']?.toString() ?? '',
       url: json['url']?.toString() ?? '',
       token: json['token']?.toString() ?? '',
+      partnerName: json['partnerName']?.toString() ?? '',
+      partnerId: json['partnerId']?.toString() ?? '',
+      partnerPhoto: json['partnerPhoto']?.toString() ?? '',
+      partnerAge: _int(json['partnerAge']),
+      partnerCity: json['partnerCity']?.toString() ?? '',
+      introSeconds: _int(json['introSeconds'], fallback: 33),
     );
   }
 
@@ -86,6 +104,54 @@ class SpeedDateApi {
 
   static Future<SpeedDateStatus> rotate(String eventId) {
     return _send('POST', '/rotate', {'eventId': eventId});
+  }
+
+  static Future<void> saveProfile({
+    required String eventId,
+    required String partnerId,
+    required bool save,
+    required int durationSeconds,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('tokenData') ?? prefs.getString('token') ?? '';
+    final response = await http.post(
+      Uri.parse('$_root/save'),
+      headers: {
+        'Authorization': saved.startsWith('Bearer ') ? saved : 'Bearer $saved',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'eventId': eventId,
+        'partnerId': partnerId,
+        'save': save,
+        'durationSeconds': durationSeconds,
+      }),
+    );
+    final decoded = response.body.isEmpty ? {} : jsonDecode(response.body);
+    final payload = decoded is Map ? decoded : {};
+    if (response.statusCode != 200 || payload['success'] != true) {
+      throw Exception(payload['message']?.toString() ?? 'Could not save this profile');
+    }
+  }
+
+  static Future<Map<String, dynamic>> saves() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('tokenData') ?? prefs.getString('token') ?? '';
+    final response = await http.get(
+      Uri.parse('$_root/saves'),
+      headers: {
+        'Authorization': saved.startsWith('Bearer ') ? saved : 'Bearer $saved',
+        'Accept': 'application/json',
+      },
+    );
+    final decoded = response.body.isEmpty ? {} : jsonDecode(response.body);
+    final payload = decoded is Map ? decoded : {};
+    if (response.statusCode != 200 || payload['success'] != true) {
+      throw Exception(payload['message']?.toString() ?? 'Could not load saved profiles');
+    }
+    final data = payload['data'];
+    return data is Map ? Map<String, dynamic>.from(data) : {};
   }
 
   static Future<SpeedDateStatus> _send(
