@@ -4,7 +4,9 @@ import 'package:get/get.dart';
 import '../controllers/chat_controller.dart';
 
 class ChatView extends GetView<ChatController> {
-  const ChatView({super.key});
+  const ChatView({super.key, this.person = const {}});
+
+  final Map<String, dynamic> person;
 
   static const Color pink = Color(0xFFEB4078);
   static const Color darkPink = Color(0xFFB9134B);
@@ -15,7 +17,7 @@ class ChatView extends GetView<ChatController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(ChatController());
+    Get.put(ChatController()).applyPerson(person);
     return Scaffold(
       backgroundColor: background,
       body: SafeArea(
@@ -54,44 +56,29 @@ class ChatView extends GetView<ChatController> {
               size: 23,
             ),
           ),
-          Container(
-            height: 40,
-            width: 40,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: darkPink,
-            ),
-            child: const Icon(
-              Icons.person_outline,
-              color: Colors.white,
-              size: 23,
-            ),
-          ),
+          Obx(() => _avatar(controller.partnerPhoto.value, size: 40)),
           const SizedBox(width: 9),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Riya Sharma',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: textColor,
+          Expanded(
+            child: Obx(
+              () => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    controller.partnerName.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: textColor),
                   ),
-                ),
-                SizedBox(height: 2),
-                Row(
-                  children: [
-                    Icon(Icons.circle, color: Color(0xFF10B981), size: 8),
-                    SizedBox(width: 4),
-                    Text(
-                      'Online',
-                      style: TextStyle(fontSize: 11, color: muted),
-                    ),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: 2),
+                  const Row(
+                    children: [
+                      Icon(Icons.circle, color: Color(0xFF10B981), size: 8),
+                      SizedBox(width: 4),
+                      Text('Online', style: TextStyle(fontSize: 11, color: muted)),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
           IconButton(
@@ -170,7 +157,10 @@ class ChatView extends GetView<ChatController> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!message.isMe) ...[
-                _avatar(message.avatar, size: 32),
+                _avatar(
+                  controller.partnerPhoto.value.isNotEmpty ? controller.partnerPhoto.value : message.avatar,
+                  size: 32,
+                ),
                 const SizedBox(width: 8),
               ],
               Flexible(
@@ -260,22 +250,18 @@ class ChatView extends GetView<ChatController> {
             color: const Color(0xFFF0E6F5),
             borderRadius: BorderRadius.circular(24),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _TypingDot(),
-              SizedBox(width: 4),
-              _TypingDot(),
-              SizedBox(width: 4),
-              _TypingDot(),
-              SizedBox(width: 9),
+              const _TypingDot(),
+              const SizedBox(width: 4),
+              const _TypingDot(),
+              const SizedBox(width: 4),
+              const _TypingDot(),
+              const SizedBox(width: 9),
               Text(
-                'Riya is typing...',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: muted,
-                ),
+                '${controller.firstName} is typing...',
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: muted),
               ),
             ],
           ),
@@ -365,13 +351,21 @@ class ChatView extends GetView<ChatController> {
 
   // Avatar
   Widget _avatar(String? imageId, {required double size}) {
-    if (imageId == null) {
-      return const SizedBox.shrink();
+    if (imageId == null || imageId.isEmpty) {
+      return Container(
+        height: size,
+        width: size,
+        decoration: const BoxDecoration(shape: BoxShape.circle, color: darkPink),
+        child: Icon(Icons.person, color: Colors.white, size: size * 0.55),
+      );
     }
+    final url = imageId.startsWith('http')
+        ? imageId
+        : 'https://images.unsplash.com/$imageId?w=100&h=100&fit=crop&crop=faces';
 
     return ClipOval(
       child: Image.network(
-        'https://images.unsplash.com/$imageId?w=100&h=100&fit=crop&crop=faces',
+        url,
         width: size,
         height: size,
         fit: BoxFit.cover,

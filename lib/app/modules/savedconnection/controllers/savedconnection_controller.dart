@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../data/api_config.dart';
 import '../../../data/speed_date_api.dart';
+import '../../chat/views/chat_view.dart';
 import '../../connectionProfilDetail/views/connection_profil_detail_view.dart';
 
 class SavedconnectionController extends GetxController {
@@ -68,16 +69,11 @@ class SavedconnectionController extends GetxController {
   }
 
   void startChat(Map<String, dynamic> person) {
-    Get.snackbar(
-      'Mutual Match',
-      'Opening chat with ${person['name']}',
-      snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
-    );
+    Get.to(() => ChatView(person: person));
   }
 
   void viewProfile(Map<String, dynamic> person) {
-    Get.to(() => const ConnectionProfilDetailView());
+    Get.to(() => ConnectionProfilDetailView(person: person));
   }
 
   List<Map<String, dynamic>> get currentList {

@@ -5,7 +5,9 @@ import '../controllers/connection_profil_detail_controller.dart';
 
 class ConnectionProfilDetailView
     extends GetView<ConnectionProfilDetailController> {
-  const ConnectionProfilDetailView({super.key});
+  const ConnectionProfilDetailView({super.key, this.person = const {}});
+
+  final Map<String, dynamic> person;
 
   static const Color bg = Color(0xFFFFF8FF);
   static const Color pink = Color(0xFFFF4777);
@@ -17,7 +19,7 @@ class ConnectionProfilDetailView
 
   @override
   Widget build(BuildContext context) {
-    Get.put(ConnectionProfilDetailController());
+    Get.put(ConnectionProfilDetailController()).bind(person);
     return Scaffold(
       backgroundColor: bg,
       body: SafeArea(
@@ -119,7 +121,7 @@ class ConnectionProfilDetailView
                 fit: StackFit.expand,
                 children: [
                   Image.network(
-                    'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=900',
+                    controller.photo,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -218,7 +220,9 @@ class ConnectionProfilDetailView
                           children: [
                             Flexible(
                               child: Text(
-                                '${controller.profileName}, ${controller.age}',
+                                controller.age > 0
+                                    ? '${controller.profileName}, ${controller.age}'
+                                    : controller.profileName,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 21,
@@ -231,19 +235,22 @@ class ConnectionProfilDetailView
                           ],
                         ),
                         const SizedBox(height: 4),
-                        const Row(
+                        Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.location_on_outlined,
                               color: Colors.white,
                               size: 15,
                             ),
-                            SizedBox(width: 4),
-                            Text(
-                              'Indore, India  ·  Speed Match #1',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white,
+                            const SizedBox(width: 4),
+                            Flexible(
+                              child: Text(
+                                controller.location.isEmpty
+                                    ? controller.eventTitle
+                                    : '${controller.location}  ·  ${controller.eventTitle}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 12, color: Colors.white),
                               ),
                             ),
                           ],
@@ -260,25 +267,21 @@ class ConnectionProfilDetailView
                             ),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Row(
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.favorite,
-                                color: Colors.white,
-                                size: 14,
-                              ),
-                              SizedBox(width: 5),
+                              const Icon(Icons.favorite, color: Colors.white, size: 14),
+                              const SizedBox(width: 5),
                               Text(
-                                'Mutual Match',
-                                style: TextStyle(
+                                controller.isMutual ? 'Mutual Match' : 'Saved Profile',
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              SizedBox(width: 5),
-                              Icon(Icons.check, size: 14, color: Colors.white),
+                              const SizedBox(width: 5),
+                              const Icon(Icons.check, size: 14, color: Colors.white),
                             ],
                           ),
                         ),
@@ -414,7 +417,7 @@ class ConnectionProfilDetailView
                 Expanded(
                   child: Column(
                     children: [
-                      _contextCell('Event', 'Friday Speed Dating Night'),
+                      _contextCell('Event', controller.eventTitle),
                       const SizedBox(height: 8),
                       _contextCell('Match Order', 'Match #1'),
                     ],
@@ -430,10 +433,10 @@ class ConnectionProfilDetailView
                         width: double.infinity,
                         padding: const EdgeInsets.all(9),
                         color: const Color(0xFFF7F0FC),
-                        child: const Column(
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
+                            const Text(
                               'Conversation Time',
                               style: TextStyle(
                                 color: Color(0xFF654B5B),
@@ -441,18 +444,20 @@ class ConnectionProfilDetailView
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Row(
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.timer_outlined,
                                   color: pink,
                                   size: 17,
                                 ),
-                                SizedBox(width: 4),
+                                const SizedBox(width: 4),
                                 Flexible(
                                   child: Text(
-                                    '03:00 min',
+                                    controller.conversationDuration.isEmpty
+                                        ? '—'
+                                        : controller.conversationDuration,
                                     style: TextStyle(
                                       color: darkPink,
                                       fontSize: 14,
@@ -477,7 +482,7 @@ class ConnectionProfilDetailView
               width: double.infinity,
               padding: const EdgeInsets.all(9),
               color: const Color(0xFFF2E9FA),
-              child: const Column(
+              child: Column(
                 children: [
                   Row(
                     children: [
@@ -494,7 +499,7 @@ class ConnectionProfilDetailView
                         ),
                       ),
                       Text(
-                        '23 Sep 2026 • 8:04 PM',
+                        controller.eventDate.isEmpty ? '—' : controller.eventDate,
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -503,7 +508,7 @@ class ConnectionProfilDetailView
                       ),
                     ],
                   ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   Row(
                     children: [
                       Icon(Icons.favorite_border, size: 15, color: purple),
@@ -515,7 +520,9 @@ class ConnectionProfilDetailView
                         ),
                       ),
                       Text(
-                        '23 Sep 2026 • 8:06 PM',
+                        controller.isMutual
+                            ? (controller.eventDate.isEmpty ? '—' : controller.eventDate)
+                            : 'Waiting',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -566,12 +573,20 @@ class ConnectionProfilDetailView
 
   // Connection timeline
   Widget _timelineCard() {
+    final when = controller.eventDate.isEmpty ? 'Live event' : controller.eventDate;
+    final duration = controller.conversationDuration.isEmpty ? 'Video session' : controller.conversationDuration;
     final milestones = [
-      ('Met at Event', '23 Sep • 8:00 PM'),
-      ('Speed Date Completed', '03:00 duration • Video session'),
-      ('You Saved Profile', '8:04 PM • Spark sent'),
-      ('They Saved You', '8:06 PM • Spark reciprocated'),
-      ('Mutual Match Confirmed', '8:06 PM • Ready to connect!'),
+      ('Met at Event', when),
+      ('Speed Date Completed', '$duration • Video session'),
+      ('You Saved Profile', '$when • Spark sent'),
+      (
+        controller.isMutual ? 'They Saved You' : 'Waiting for them',
+        controller.isMutual ? '$when • Spark reciprocated' : 'Not saved back yet',
+      ),
+      (
+        controller.isMutual ? 'Mutual Match Confirmed' : 'Connection saved',
+        controller.isMutual ? '$when • Ready to connect!' : 'Chat opens after a mutual save',
+      ),
     ];
 
     return Card(
@@ -741,7 +756,7 @@ class ConnectionProfilDetailView
                           Text(
                             controller.isChatStarting.value
                                 ? 'Starting Chat...'
-                                : 'Start Chat with ${controller.profileName}',
+                                : 'Start Chat with ${controller.firstName}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,

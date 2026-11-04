@@ -40,6 +40,29 @@ class ChatController extends GetxController {
   ].obs;
 
   final RxBool isTyping = true.obs;
+  final RxString partnerName = 'Chat'.obs;
+  final RxString partnerPhoto = ''.obs;
+
+  void applyPerson(Map<String, dynamic> person) {
+    final name = person['name']?.toString().trim() ?? '';
+    if (name.isEmpty) return;
+    partnerName.value = name;
+    partnerPhoto.value = person['image']?.toString() ?? person['photo']?.toString() ?? '';
+    final first = name.split(' ').first;
+    if (messages.length > 1 && messages[1].isMe) {
+      messages[1] = ChatMessage(
+        text: 'Hey $first! I enjoyed our conversation too 😊',
+        time: messages[1].time,
+        isMe: true,
+      );
+    }
+  }
+
+  String get firstName {
+    final name = partnerName.value.trim();
+    if (name.isEmpty || name == 'Chat') return 'They';
+    return name.split(' ').first;
+  }
 
   void sendMessage() {
     final text = messageController.text.trim();
