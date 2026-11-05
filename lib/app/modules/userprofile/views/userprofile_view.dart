@@ -63,42 +63,45 @@ class UserprofileView extends GetView<UserprofileController> {
               color: profilePink,
               onRefresh: controller.loadProfile,
               child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(
-                horizontalPadding,
-                10,
-                horizontalPadding,
-                24,
-              ),
-              children: [
-                _profileHeader(),
-                Obx(() {
-                  if (controller.about.value.trim().isEmpty) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: _aboutCard(),
-                  );
-                }),
-                Obx(() {
-                  if (controller.interested.isEmpty) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: _interestedCard(),
-                  );
-                }),
-                Obx(() {
-                  if (controller.professional.isEmpty) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: _professionalCard(),
-                  );
-                }),
-                const SizedBox(height: 16),
-                _activityCard(),
-                const SizedBox(height: 16),
-                _settingsCard(),
-                const SizedBox(height: 70),
-              ],
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(
+                  horizontalPadding,
+                  10,
+                  horizontalPadding,
+                  24,
+                ),
+                children: [
+                  _profileHeader(),
+                  Obx(() {
+                    if (controller.about.value.trim().isEmpty)
+                      return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: _aboutCard(),
+                    );
+                  }),
+                  Obx(() {
+                    if (controller.interested.isEmpty)
+                      return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: _interestedCard(),
+                    );
+                  }),
+                  Obx(() {
+                    if (controller.professional.isEmpty)
+                      return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: _professionalCard(),
+                    );
+                  }),
+                  const SizedBox(height: 16),
+                  _activityCard(),
+                  const SizedBox(height: 16),
+                  _settingsCard(),
+                  const SizedBox(height: 70),
+                ],
               ),
             );
           },
@@ -141,9 +144,15 @@ class UserprofileView extends GetView<UserprofileController> {
                     return CircleAvatar(
                       radius: 45,
                       backgroundColor: const Color(0xFFF0E3DC),
-                      backgroundImage: photo.isEmpty ? null : NetworkImage(photo),
+                      backgroundImage: photo.isEmpty
+                          ? null
+                          : NetworkImage(photo),
                       child: photo.isEmpty
-                          ? const Icon(Icons.person, size: 42, color: profilePurple)
+                          ? const Icon(
+                              Icons.person,
+                              size: 42,
+                              color: profilePurple,
+                            )
                           : null,
                     );
                   }),
@@ -193,13 +202,20 @@ class UserprofileView extends GetView<UserprofileController> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.location_on_outlined, color: profilePink, size: 16),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      color: profilePink,
+                      size: 16,
+                    ),
                     const SizedBox(width: 3),
                     Flexible(
                       child: Text(
                         details,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(color: profileMuted, fontSize: 13),
+                        style: const TextStyle(
+                          color: profileMuted,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
@@ -211,27 +227,68 @@ class UserprofileView extends GetView<UserprofileController> {
               return Padding(
                 padding: const EdgeInsets.only(top: 8),
                 child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 5),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF2E9FC),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.verified, color: Color(0xFF10A875), size: 14),
-                  SizedBox(width: 5),
-                  Text(
-                    'Profile Verified',
-                    style: TextStyle(
-                      color: profileText,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 13,
+                    vertical: 5,
                   ),
-                ],
-              ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF2E9FC),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.verified, color: Color(0xFF10A875), size: 14),
+                      SizedBox(width: 5),
+                      Text(
+                        'Profile Verified',
+                        style: TextStyle(
+                          color: profileText,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+              );
+            }),
+            // PROFILE GALLERY
+            const SizedBox(height: 18),
+
+            Obx(() {
+              return Row(
+                children: List.generate(4, (index) {
+                  final hasImage = index < controller.gallery.length;
+
+                  return Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.only(right: index == 4 ? 0 : 10),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: hasImage
+                              ? Image.network(
+                                  controller.gallery[index],
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: const Color(0xFFD9D9D9),
+                                      child: const Icon(
+                                        Icons.image_not_supported_outlined,
+                                        color: Colors.white,
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Container(color: const Color(0xFFD9D9D9)),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
               );
             }),
             const SizedBox(height: 16),
@@ -282,10 +339,15 @@ class UserprofileView extends GetView<UserprofileController> {
                       },
                       child: Obx(
                         () => LinearProgressIndicator(
-                          value: (controller.completion.value / 100).clamp(0.0, 1.0),
+                          value: (controller.completion.value / 100).clamp(
+                            0.0,
+                            1.0,
+                          ),
                           minHeight: 8,
                           backgroundColor: const Color(0xFFE6DDEC),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -334,7 +396,11 @@ class UserprofileView extends GetView<UserprofileController> {
             Obx(
               () => Text(
                 controller.about.value,
-                style: const TextStyle(color: profileMuted, fontSize: 14, height: 1.55),
+                style: const TextStyle(
+                  color: profileMuted,
+                  fontSize: 14,
+                  height: 1.55,
+                ),
               ),
             ),
           ],
@@ -359,8 +425,12 @@ class UserprofileView extends GetView<UserprofileController> {
                     .map(
                       (item) => _tag(
                         item,
-                        item == 'Dating' ? const Color(0xFFFFF0F3) : const Color(0xFFF5EEFF),
-                        item == 'Dating' ? const Color(0xFFC21850) : profilePurple,
+                        item == 'Dating'
+                            ? const Color(0xFFFFF0F3)
+                            : const Color(0xFFF5EEFF),
+                        item == 'Dating'
+                            ? const Color(0xFFC21850)
+                            : profilePurple,
                       ),
                     )
                     .toList(),
@@ -385,7 +455,10 @@ class UserprofileView extends GetView<UserprofileController> {
                 spacing: 8,
                 runSpacing: 8,
                 children: controller.professional
-                    .map((item) => _tag(item, const Color(0xFFF2E9FC), profileText))
+                    .map(
+                      (item) =>
+                          _tag(item, const Color(0xFFF2E9FC), profileText),
+                    )
                     .toList(),
               ),
             ),
@@ -553,14 +626,18 @@ class UserprofileView extends GetView<UserprofileController> {
                         children: [
                           Icon(
                             verified ? Icons.check : Icons.schedule,
-                            color: verified ? const Color(0xFF009B69) : profileMuted,
+                            color: verified
+                                ? const Color(0xFF009B69)
+                                : profileMuted,
                             size: 14,
                           ),
                           const SizedBox(width: 3),
                           Text(
                             verified ? 'Verified' : 'Pending',
                             style: TextStyle(
-                              color: verified ? const Color(0xFF009B69) : profileMuted,
+                              color: verified
+                                  ? const Color(0xFF009B69)
+                                  : profileMuted,
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
                             ),

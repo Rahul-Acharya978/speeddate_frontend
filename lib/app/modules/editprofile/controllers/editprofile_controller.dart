@@ -17,6 +17,56 @@ class EditprofileController extends GetxController {
   final dateOfBirth = '14 / 08 / 1999'.obs;
   final gender = 'Man'.obs;
 
+  final RxList<File> galleryImages = <File>[].obs;
+
+  Future<void> pickGalleryImages() async {
+    try {
+      const int maxImages = 4;
+
+      final remaining = maxImages - galleryImages.length;
+
+      if (remaining <= 0) {
+        Get.snackbar(
+          'Limit Reached',
+          'You can select maximum 4 gallery photos.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        return;
+      }
+
+      final List<XFile> images = await _picker.pickMultiImage(
+        imageQuality: 85,
+        maxWidth: 1000,
+      );
+
+      if (images.isEmpty) return;
+
+      final selectedImages = images.take(remaining).toList();
+
+      galleryImages.addAll(
+        selectedImages.map((image) => File(image.path)),
+      );
+
+      Get.snackbar(
+        'Success',
+        '${selectedImages.length} photo(s) added successfully.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Unable to select gallery photos.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  void removeGalleryImage(int index) {
+    if (index >= 0 && index < galleryImages.length) {
+      galleryImages.removeAt(index);
+    }
+  }
+
   final lookingFor = <String>[
     'Dating',
     'Networking',

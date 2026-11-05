@@ -21,6 +21,7 @@ class UserprofileController extends GetxController {
   final professional = <String>[].obs;
   final eventsJoined = 0.obs;
   final mutualMatches = 0.obs;
+  final gallery = <String>[].obs;
 
   String get nameLine {
     if (name.value.isEmpty && age.value <= 0) return 'Your profile';
@@ -60,6 +61,9 @@ class UserprofileController extends GetxController {
       eventsJoined.value = int.tryParse(data['eventsJoined']?.toString() ?? '') ?? 0;
       mutualMatches.value = int.tryParse(data['mutualMatches']?.toString() ?? '') ?? 0;
       photoUrl.value = _photoUrl(data['photo']?.toString() ?? '');
+      gallery.assignAll(
+        _strings(data['gallery']).map((path) => _photoUrl(path)).toList(),
+      );
     } catch (error) {
       print('Profile load error: $error');
     } finally {

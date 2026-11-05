@@ -102,12 +102,17 @@ class EditprofileView extends GetView<EditprofileController> {
 
   Widget _photoCard() {
     return Card(
+      elevation: 3,
+      shadowColor: purple.withOpacity(0.12),
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Container(
         width: double.infinity,
-        height: 195,
+        height: 225,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           gradient: const LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.center,
@@ -116,53 +121,66 @@ class EditprofileView extends GetView<EditprofileController> {
         ),
         child: Column(
           children: [
-            const SizedBox(height: 16),
-            Obx(
-              () => Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(colors: [purple, pink, darkPink]),
-                ),
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: lightPurple,
-                  backgroundImage: controller.profileImage.value != null
-                      ? FileImage(controller.profileImage.value!)
-                      : null,
-                  child: controller.profileImage.value == null
-                      ? const Icon(Icons.person, size: 52, color: muted)
-                      : null,
+            // PROFILE IMAGE
+            SizedBox(
+              height: 96,
+              child: Center(
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Obx(
+                      () => Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [purple, pink, darkPink],
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 43,
+                          backgroundColor: lightPurple,
+                          backgroundImage: controller.profileImage.value != null
+                              ? FileImage(controller.profileImage.value!)
+                              : null,
+                          child: controller.profileImage.value == null
+                              ? const Icon(Icons.person, size: 48, color: muted)
+                              : null,
+                        ),
+                      ),
+                    ),
+
+                    // CAMERA BUTTON
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: GestureDetector(
+                        onTap: controller.pickProfileImage,
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [pink, Color(0xFFB9134B)],
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt_outlined,
+                            color: Colors.white,
+                            size: 17,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
+            SizedBox(height: 10),
+            // CHANGE PHOTO AND REMOVE BUTTONS
             Transform.translate(
-              offset: const Offset(29, -29),
-              child: Align(
-                alignment: Alignment.center,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.pink, Color(0xFFB9134B)],
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    icon: const Icon(
-                      Icons.camera_alt_outlined,
-                      size: 17,
-                      color: Colors.white,
-                    ),
-                    onPressed: controller.pickProfileImage,
-                  ),
-                ),
-              ),
-            ),
-            Transform.translate(
-              offset: const Offset(0, -21),
+              offset: const Offset(0, -2),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -193,7 +211,9 @@ class EditprofileView extends GetView<EditprofileController> {
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 8),
+
                   TextButton(
                     onPressed: controller.removeProfileImage,
                     style: TextButton.styleFrom(
@@ -208,10 +228,74 @@ class EditprofileView extends GetView<EditprofileController> {
                     ),
                     child: const Text(
                       'Remove',
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // GALLERY IMAGES + LAST PLUS BOX
+            Expanded(
+              child: Obx(
+                () => Row(
+                  children: List.generate(5, (index) {
+                    final bool isAddButton = index == 4;
+                    final bool hasImage =
+                        !isAddButton && index < controller.galleryImages.length;
+
+                    return Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(right: index == 4 ? 0 : 10),
+                        child: GestureDetector(
+                          onTap: isAddButton
+                              ? controller.pickGalleryImages
+                              : null,
+                          onLongPress: hasImage
+                              ? () => controller.removeGalleryImage(index)
+                              : null,
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: isAddButton
+                                  ? Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF8F0FF),
+                                        borderRadius: BorderRadius.circular(10),
+                                        border: Border.all(
+                                          color: purple.withOpacity(0.35),
+                                          width: 1.2,
+                                        ),
+                                      ),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.add,
+                                          size: 32,
+                                          color: darkPink,
+                                        ),
+                                      ),
+                                    )
+                                  : hasImage
+                                  ? Image.file(
+                                      controller.galleryImages[index],
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    )
+                                  : Container(color: const Color(0xFFD9D9D9)),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
               ),
             ),
           ],
@@ -219,6 +303,126 @@ class EditprofileView extends GetView<EditprofileController> {
       ),
     );
   }
+
+  // Widget _photoCard() {
+  //   return Card(
+  //     child: Container(
+  //       width: double.infinity,
+  //       height: 195,
+  //       decoration: BoxDecoration(
+  //         color: Colors.white,
+  //         borderRadius: BorderRadius.circular(12),
+  //         gradient: const LinearGradient(
+  //           begin: Alignment.topRight,
+  //           end: Alignment.center,
+  //           colors: [Color(0xFFF5DCEB), Colors.white, Colors.white],
+  //         ),
+  //       ),
+  //       child: Column(
+  //         children: [
+  //           const SizedBox(height: 16),
+  //           Obx(
+  //             () => Container(
+  //               padding: const EdgeInsets.all(4),
+  //               decoration: const BoxDecoration(
+  //                 shape: BoxShape.circle,
+  //                 gradient: LinearGradient(colors: [purple, pink, darkPink]),
+  //               ),
+  //               child: CircleAvatar(
+  //                 radius: 50,
+  //                 backgroundColor: lightPurple,
+  //                 backgroundImage: controller.profileImage.value != null
+  //                     ? FileImage(controller.profileImage.value!)
+  //                     : null,
+  //                 child: controller.profileImage.value == null
+  //                     ? const Icon(Icons.person, size: 52, color: muted)
+  //                     : null,
+  //               ),
+  //             ),
+  //           ),
+  //           Transform.translate(
+  //             offset: const Offset(29, -29),
+  //             child: Align(
+  //               alignment: Alignment.center,
+  //               child: Container(
+  //                 width: 32,
+  //                 height: 32,
+  //                 decoration: BoxDecoration(
+  //                   gradient: LinearGradient(
+  //                     colors: [Colors.pink, Color(0xFFB9134B)],
+  //                   ),
+  //                   shape: BoxShape.circle,
+  //                 ),
+  //                 child: IconButton(
+  //                   padding: EdgeInsets.zero,
+  //                   icon: const Icon(
+  //                     Icons.camera_alt_outlined,
+  //                     size: 17,
+  //                     color: Colors.white,
+  //                   ),
+  //                   onPressed: controller.pickProfileImage,
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //           Transform.translate(
+  //             offset: const Offset(0, -21),
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.center,
+  //               children: [
+  //                 OutlinedButton.icon(
+  //                   onPressed: controller.pickProfileImage,
+  //                   icon: const Icon(
+  //                     Icons.add_a_photo_outlined,
+  //                     size: 15,
+  //                     color: darkPink,
+  //                   ),
+  //                   label: const Text('Change Photo'),
+  //                   style: OutlinedButton.styleFrom(
+  //                     foregroundColor: textColor,
+  //                     backgroundColor: lightPurple,
+  //                     side: BorderSide.none,
+  //                     padding: const EdgeInsets.symmetric(
+  //                       horizontal: 13,
+  //                       vertical: 7,
+  //                     ),
+  //                     minimumSize: Size.zero,
+  //                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  //                     shape: RoundedRectangleBorder(
+  //                       borderRadius: BorderRadius.circular(10),
+  //                     ),
+  //                     textStyle: const TextStyle(
+  //                       fontSize: 12,
+  //                       fontWeight: FontWeight.w600,
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(width: 8),
+  //                 TextButton(
+  //                   onPressed: controller.removeProfileImage,
+  //                   style: TextButton.styleFrom(
+  //                     backgroundColor: const Color(0xFFF7F5F5),
+  //                     foregroundColor: muted,
+  //                     padding: const EdgeInsets.symmetric(
+  //                       horizontal: 14,
+  //                       vertical: 8,
+  //                     ),
+  //                     minimumSize: Size.zero,
+  //                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  //                   ),
+  //                   child: const Text(
+  //                     'Remove',
+  //                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _profileStrength() {
     return Card(
@@ -272,7 +476,7 @@ class EditprofileView extends GetView<EditprofileController> {
                   children: [
                     // Remaining progress: White
                     Container(color: Colors.white),
-      
+
                     // Filled progress: Three-color gradient
                     Obx(
                       () => FractionallySizedBox(
@@ -436,7 +640,10 @@ class EditprofileView extends GetView<EditprofileController> {
                       Expanded(
                         child: Text(
                           controller.dateOfBirth.value,
-                          style: const TextStyle(color: textColor, fontSize: 15),
+                          style: const TextStyle(
+                            color: textColor,
+                            fontSize: 15,
+                          ),
                         ),
                       ),
                       const Icon(
@@ -769,9 +976,7 @@ class EditprofileView extends GetView<EditprofileController> {
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 17),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border.all(
-          color: const Color(0xFFF2E4EC),
-        ),
+        border: Border.all(color: const Color(0xFFF2E4EC)),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -779,11 +984,7 @@ class EditprofileView extends GetView<EditprofileController> {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.hub_outlined,
-                color: purple,
-                size: 22,
-              ),
+              const Icon(Icons.hub_outlined, color: purple, size: 22),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
@@ -796,7 +997,7 @@ class EditprofileView extends GetView<EditprofileController> {
                 ),
               ),
               Obx(
-                    () => Text(
+                () => Text(
                   '${controller.selectedInterests.length} Selected',
                   style: const TextStyle(
                     color: purple,
@@ -810,7 +1011,7 @@ class EditprofileView extends GetView<EditprofileController> {
           const SizedBox(height: 20),
           const Text(
             'Select your fields to connect with like-minded '
-                'professionals in speed networking.',
+            'professionals in speed networking.',
             style: TextStyle(
               color: Color(0xFF6F555D),
               height: 1.4,
@@ -819,17 +1020,17 @@ class EditprofileView extends GetView<EditprofileController> {
           ),
           const SizedBox(height: 16),
           Obx(
-                () => Wrap(
+            () => Wrap(
               spacing: 10,
               runSpacing: 9,
               children: interests.map((interest) {
-                final selected = controller.selectedInterests
-                    .contains(interest);
+                final selected = controller.selectedInterests.contains(
+                  interest,
+                );
 
                 return InkWell(
                   borderRadius: BorderRadius.circular(20),
-                  onTap: () =>
-                      controller.toggleInterest(interest),
+                  onTap: () => controller.toggleInterest(interest),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     padding: const EdgeInsets.symmetric(
