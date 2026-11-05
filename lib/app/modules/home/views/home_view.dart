@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:sundaymixer/app/data/speed_date_api.dart';
 import 'package:sundaymixer/app/modules/freeeventbooking/views/freeeventbooking_view.dart';
 import 'package:sundaymixer/app/modules/live/views/live_view.dart';
+import 'package:sundaymixer/app/modules/userprofile/views/userprofile_view.dart';
 import 'package:sundaymixer/app/modules/waitingroom/views/waitingroom_view.dart';
 import 'package:sundaymixer/app/modules/notification/views/notification_view.dart';
 
@@ -83,91 +84,99 @@ class HomeView extends GetView<HomeController> {
                     color: pink,
                     onRefresh: controller.refreshHome,
                     child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(
-                      parent: BouncingScrollPhysics(),
-                    ),
-                    padding: EdgeInsets.only(
-                      bottom: 18,
-                      left: pagePadding,
-                      right: pagePadding,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        _buildProfileCard(context),
-                        // const SizedBox(height: 16),
-                        // _buildSearchBar(context),
-                        const SizedBox(height: 16),
-                        Obx(() {
-                          if (controller.isEventsLoading.value) {
-                            return const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 28),
-                              child: Center(child: CircularProgressIndicator()),
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: EdgeInsets.only(
+                        bottom: 18,
+                        left: pagePadding,
+                        right: pagePadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 8),
+                          _buildProfileCard(context),
+
+                          const SizedBox(height: 16),
+                          Obx(() {
+                            if (controller.isEventsLoading.value) {
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 28),
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              );
+                            }
+                            final booked = controller.bookedEvent.value;
+                            final liveHero = booked != null && booked.isLive
+                                ? booked
+                                : null;
+                            final live = controller.liveEvents;
+                            final upcoming = controller.upcomingEvents
+                                .where((event) => !event.isLive)
+                                .toList();
+                            final yours = <HomeEvent>[
+                              if (booked != null && !booked.isLive) booked,
+                              ...controller.yourUpcomingEvents.where(
+                                (event) => event.id != booked?.id,
+                              ),
+                            ];
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (liveHero != null) ...[
+                                  _buildLiveEvent(context, liveHero),
+                                  const SizedBox(height: 28),
+                                ],
+                                if (live.isNotEmpty) ...[
+                                  _buildSectionHeader(
+                                    'More Live Events',
+                                    '${live.length} Active',
+                                    'View All (${live.length})',
+                                    () => _showMessage('All live events'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildLiveEventsList(context, live),
+                                  const SizedBox(height: 28),
+                                ],
+                                if (upcoming.isNotEmpty) ...[
+                                  _buildSectionHeader(
+                                    'Upcoming Events',
+                                    '${upcoming.length}',
+                                    'View All',
+                                    () => _showMessage('Upcoming events'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildUpcomingEvents(
+                                    context,
+                                    isWide,
+                                    upcoming,
+                                  ),
+                                  const SizedBox(height: 28),
+                                ],
+                                if (yours.isNotEmpty) ...[
+                                  _buildSectionHeader(
+                                    'Your Upcoming Events',
+                                    '${yours.length}',
+                                    'View All',
+                                    () =>
+                                        _showMessage('Your registered events'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildUpcomingEvents(
+                                    context,
+                                    isWide,
+                                    yours,
+                                    bookedSection: true,
+                                  ),
+                                ],
+                                const SizedBox(height: 24),
+                              ],
                             );
-                          }
-                          final booked = controller.bookedEvent.value;
-                          final liveHero = booked != null && booked.isLive ? booked : null;
-                          final live = controller.liveEvents;
-                          final upcoming = controller.upcomingEvents
-                              .where((event) => !event.isLive)
-                              .toList();
-                          final yours = <HomeEvent>[
-                            if (booked != null && !booked.isLive) booked,
-                            ...controller.yourUpcomingEvents.where(
-                              (event) => event.id != booked?.id,
-                            ),
-                          ];
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (liveHero != null) ...[
-                                _buildLiveEvent(context, liveHero),
-                                const SizedBox(height: 28),
-                              ],
-                              if (live.isNotEmpty) ...[
-                                _buildSectionHeader(
-                                  'More Live Events',
-                                  '${live.length} Active',
-                                  'View All (${live.length})',
-                                  () => _showMessage('All live events'),
-                                ),
-                                const SizedBox(height: 12),
-                                _buildLiveEventsList(context, live),
-                                const SizedBox(height: 28),
-                              ],
-                              if (upcoming.isNotEmpty) ...[
-                                _buildSectionHeader(
-                                  'Upcoming Events',
-                                  '${upcoming.length}',
-                                  'View All',
-                                  () => _showMessage('Upcoming events'),
-                                ),
-                                const SizedBox(height: 12),
-                                _buildUpcomingEvents(context, isWide, upcoming),
-                                const SizedBox(height: 28),
-                              ],
-                              if (yours.isNotEmpty) ...[
-                                _buildSectionHeader(
-                                  'Your Upcoming Events',
-                                  '${yours.length}',
-                                  'View All',
-                                  () => _showMessage('Your registered events'),
-                                ),
-                                const SizedBox(height: 12),
-                                _buildUpcomingEvents(
-                                  context,
-                                  isWide,
-                                  yours,
-                                  bookedSection: true,
-                                ),
-                              ],
-                              const SizedBox(height: 24),
-                            ],
-                          );
-                        }),
-                      ],
-                    ),
+                          }),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -227,7 +236,9 @@ class HomeView extends GetView<HomeController> {
             clipBehavior: Clip.none,
             children: [
               IconButton(
-                onPressed: () { Get.to(NotificationView());},
+                onPressed: () {
+                  Get.to(NotificationView());
+                },
                 icon: const Icon(
                   Icons.notifications_none_rounded,
                   size: 27,
@@ -251,7 +262,7 @@ class HomeView extends GetView<HomeController> {
           const SizedBox(width: 8),
           InkWell(
             onTap: () {
-              Get.to(CompleteYourProfileView());
+              Get.to(UserprofileView());
             },
             child: ClipOval(
               child: Image.network(
@@ -290,7 +301,7 @@ class HomeView extends GetView<HomeController> {
   Widget _buildProfileCard(BuildContext context) {
     return Card(
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12,vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -374,7 +385,9 @@ class HomeView extends GetView<HomeController> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () => _showMessage('Complete your profile'),
+                        onTap: () {
+                          Get.to(CompleteYourProfileView());
+                        },
                         borderRadius: BorderRadius.circular(30),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
@@ -457,12 +470,12 @@ class HomeView extends GetView<HomeController> {
                 height: 6,
                 color: const Color(0xFFF0E5F8),
                 child: Obx(
-                      () => Align(
+                  () => Align(
                     alignment: Alignment.centerLeft,
                     child: FractionallySizedBox(
                       widthFactor:
-                      (controller.profileCompletionPercent.value / 100)
-                          .clamp(0.0, 1.0),
+                          (controller.profileCompletionPercent.value / 100)
+                              .clamp(0.0, 1.0),
                       child: Container(
                         decoration: const BoxDecoration(
                           gradient: LinearGradient(
@@ -480,7 +493,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -1274,9 +1287,7 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  void _showMessage(String message) {
-
-  }
+  void _showMessage(String message) {}
 
   void _openEventBooking(HomeEvent event) {
     if (event.booked) return;
